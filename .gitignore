@@ -1,0 +1,15 @@
+# общая онлайн-версия (копия с GitHub, создаётся сама при запуске)
+_online/
+
+# программа туннеля и временные файлы запуска
+tools/cloudflared.exe
+tools/pids.txt
+tools/tunnel.log
+ссылка.txt
+
+# старые резервные копии
+backup_*/
+
+# мусор Windows
+Thumbs.db
+desktop.ini
