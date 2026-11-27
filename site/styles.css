@@ -2030,3 +2030,9 @@ html.cq-out .header__pill {
     background: rgba(255,255,255,.72); -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%);
     box-shadow: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(255,255,255,.6), 0 8px 20px -14px rgba(38,58,56,.35); }
 }
+
+/* Наш салон: два маленьких фото под большим (27.11) */
+.salon2__more { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(10px, 1.4vw, 18px); margin-top: clamp(10px, 1.4vw, 18px); }
+.salon2__small { aspect-ratio: 4 / 3; border-radius: var(--r-l, 28px); overflow: hidden; }
+.salon2__small img, img.salon2__small { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 560px) { .salon2__more { gap: 8px; } .salon2__small { aspect-ratio: 3 / 4; } }
