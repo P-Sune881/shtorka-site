@@ -799,6 +799,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .seg--platform[data-platform="yandex"] .seg__blob { background: linear-gradient(180deg, rgba(255,255,255,.3), transparent 55%), linear-gradient(120deg, #E8A800, #F2532B); }
 .seg--platform[data-platform="gis"] .seg__blob { background: linear-gradient(180deg, rgba(255,255,255,.3), transparent 55%), #1E8E3E; }
 .review-list { display: grid; gap: 12px; }
+.reviews-more { display: flex; margin: 16px auto 0; }
+.reviews-more[hidden] { display: none; }
 .review { padding: 18px; border-radius: var(--r-m); background: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.95); animation: card-in .5s var(--ease) both; }
 .review__head { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
 .review__name { font-weight: 800; }
