@@ -840,6 +840,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .gift-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .gift { --r: var(--r-m); padding: 8px; display: flex; flex-direction: column; text-align: left; border: 1px solid rgba(255,255,255,.78); cursor: pointer; }
 .gift .ph { aspect-ratio: 1 / 1; }
+.gift__ph { background: #F3EFE8 !important; overflow: hidden; }
+.gift__ph::after { display: none !important; }
+.gift__ph img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
 .gift__body { padding: 12px 6px 6px; display: grid; gap: 4px; }
 .gift__name, .gift__price { display: block; }
 .gift__name { font-weight: 700; line-height: 1.3; }

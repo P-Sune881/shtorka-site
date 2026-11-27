@@ -240,11 +240,11 @@ const PERSONAL = [
 
 // Готовые подарочные идеи
 const GIFTS = [
-  { name: 'Комплект белья в подарочной коробке', price: 5900, photo: 'Фото: комплект белья в коробке с лентой' },
-  { name: 'Набор полотенец', price: 2900, photo: 'Фото: набор полотенец, перевязанный лентой' },
-  { name: 'Подушки из нежнейшего гусиного пуха', price: 6200, photo: 'Фото: пуховые подушки на кровати' },
-  { name: 'Детский постельный комплект', price: 4500, photo: 'Фото: детский постельный комплект' },
-  { name: 'Халат и полотенце', price: 4800, photo: 'Фото: махровый халат и полотенце' },
+  { name: 'Комплект белья в подарочной коробке', price: 5900, photo: 'Фото: комплект белья в коробке с лентой', img: 'bedding' },
+  { name: 'Набор полотенец', price: 2900, photo: 'Фото: набор полотенец, перевязанный лентой', img: 'towels' },
+  { name: 'Подушки из нежнейшего гусиного пуха', price: 6200, photo: 'Фото: пуховые подушки на кровати', img: 'pillows' },
+  { name: 'Детский постельный комплект', price: 4500, photo: 'Фото: детский постельный комплект', img: 'kids' },
+  { name: 'Халат и полотенце', price: 4800, photo: 'Фото: махровый халат и полотенце', img: 'robe' },
 ];
 
 /* ---------- 2. Утилиты ---------- */
@@ -1565,7 +1565,7 @@ function initReviews() {
 function initGifts() {
   $('#gift-grid').innerHTML = GIFTS.map((g, i) => `
     <button class="gift glass reveal" type="button" data-gift="${i}" style="--d:${i * 70}ms">
-      <span class="ph ph--peach" data-label="${esc(g.photo)}"></span>
+      ${g.img ? `<span class="ph gift__ph"><img src="assets/gifts/${g.img}.webp" alt="${esc(g.name)}" width="800" height="800" loading="lazy" decoding="async"></span>` : `<span class="ph ph--peach" data-label="${esc(g.photo)}"></span>`}
       <span class="gift__body"><span class="gift__name">${esc(g.name)}</span><span class="gift__price">от ${rub(g.price)}</span></span>
     </button>`).join('');
   $('#gift-grid').addEventListener('click', (e) => {
