@@ -270,7 +270,9 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 
 /* Преломление фона (SVG feDisplacementMap). Только Chromium на нормальных устройствах — класс .refract на <html> */
-.refract .glass--refract, .refract .seg, .refract .header__pill, .refract .glass--hero {
+/* только на небольших элементах: на крупных плашках преломление почти не видно, а Chrome пересчитывает его
+   на каждом кадре прокрутки — главная причина рывков на больших мониторах */
+.refract .seg, .refract .header__pill {
   -webkit-backdrop-filter: url(#lg-distort) blur(18px) saturate(180%);
   backdrop-filter: url(#lg-distort) blur(18px) saturate(180%);
 }

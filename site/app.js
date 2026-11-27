@@ -245,9 +245,48 @@ function initGlassMode() {
   const isChromium = /Chrome\/|CriOS|Edg\//.test(ua) && !/Firefox|FxiOS/.test(ua) && !/iPhone|iPad/.test(ua);
   const cores = navigator.hardwareConcurrency || 4;
   const mem = navigator.deviceMemory || 4;
-  const weak = cores <= 4 || mem <= 3 || navigator.connection?.saveData;
+  // Видеокарта не задействована (в браузере выключено аппаратное ускорение, старый драйвер) — WebGL рисует процессор.
+  // Тогда шторы стоят открытыми без анимации, стекло упрощённое: сайт выглядит так же, но не дёргается.
+  const soft = softwareGPU();
+  if (soft) html.classList.add('soft-gpu');
+  const weak = soft || cores <= 4 || mem <= 3 || navigator.connection?.saveData || store.get('perf-lite');
   if (weak) html.classList.add('lite');                 // упрощённое стекло
   else if (isChromium && !reduceMotion()) html.classList.add('refract'); // преломление через SVG-фильтр
+  if (!weak) watchFps();
+}
+function softwareGPU() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl');
+    if (!gl) return true;
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    const r = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    return /swiftshader|llvmpipe|softpipe|basic render|software/i.test(r);
+  } catch { return false; }
+}
+// Страховка: если на этом устройстве прокрутка идёт рывками (меньше ~35 кадров/с два раза подряд),
+// тихо переключаемся на упрощённое стекло без преломления. Запоминаем до конца сессии.
+function watchFps() {
+  const html = document.documentElement;
+  let busy = false, bad = 0, checks = 0;
+  const probe = () => {
+    if (busy || checks >= 6 || document.hidden || html.classList.contains('cq')) return;
+    busy = true; checks++;
+    const ts = []; const t0 = performance.now();
+    const step = (t) => { ts.push(t); if (t - t0 < 1200) requestAnimationFrame(step); else done(); };
+    const done = () => {
+      busy = false;
+      const d = ts.slice(1).map((t, i) => t - ts[i]).sort((a, b) => a - b);
+      const med = d[d.length >> 1] || 0;
+      if (med > 28) { if (++bad >= 2) degrade(); } else bad = 0;
+    };
+    requestAnimationFrame(step);
+  };
+  const degrade = () => {
+    html.classList.remove('refract'); html.classList.add('lite'); store.set('perf-lite', '1');
+    removeEventListener('scroll', probe);
+  };
+  addEventListener('scroll', probe, { passive: true });
 }
 
 // Цвет фона перетекает под экран: body[data-theme] = тема секции в центре экрана

@@ -1046,7 +1046,7 @@ function init(o) {
   let failed = false;
   const fail = (err) => { failed = true; if (err) console.warn('[curtains]', err); hero.classList.add('curtains-ready', 'curtains-off'); loader.onDone = null; loaderSet(1, true); opts.onOpenStart?.(); opts.onSettled?.(); restNow(); };
 
-  const still = reduce();
+  const still = reduce() || document.documentElement.classList.contains('soft-gpu');   // без видеокарты — шторы сразу открыты, без анимации
   let seen = false;
   try { seen = sessionStorage.getItem('curtains-seen') === '1'; sessionStorage.setItem('curtains-seen', '1'); } catch (e) { /* приватный режим */ }
 
