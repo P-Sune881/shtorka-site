@@ -1,0 +1,69 @@
+/* =========================================================
+   ИИ-примерка: экран ожидания и результат нейросети.
+   Подключается после styles.css (index.html), логика — app.js, раздел 7.1.
+   ========================================================= */
+
+/* --- пока нейросеть работает: фото чуть приглушено, по нему идёт световая волна --- */
+.stage__inner.is-ai-busy { pointer-events: none; }
+.stage__inner.is-ai-busy canvas { filter: saturate(.8) brightness(.96); transition: filter .5s; }
+.stage__inner.is-ai-busy .handle,
+.stage__inner.is-ai-busy .stage__tip,
+.stage__inner.has-ai:not(.is-ai-before) .handle,
+.stage__inner.has-ai .stage__tip { opacity: 0; pointer-events: none; }
+
+.ai-scan { position: absolute; inset: 0; z-index: 3; overflow: hidden; pointer-events: none; border-radius: calc(var(--r-l) - 12px); opacity: 0; transition: opacity .5s; }
+.is-ai-busy .ai-scan { opacity: 1; }
+.ai-scan::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 60%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,.55) 50%, rgba(255,255,255,.08) 70%, transparent 100%);
+  animation: ai-sweep 2.6s cubic-bezier(.45,0,.25,1) infinite;
+}
+.ai-scan::after { /* мерцающие искры */
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(2px 2px at 18% 30%, rgba(255,255,255,.9), transparent 60%),
+    radial-gradient(2px 2px at 72% 22%, rgba(255,255,255,.8), transparent 60%),
+    radial-gradient(3px 3px at 46% 64%, rgba(255,255,255,.7), transparent 60%),
+    radial-gradient(2px 2px at 84% 70%, rgba(255,255,255,.85), transparent 60%),
+    radial-gradient(2px 2px at 30% 82%, rgba(255,255,255,.75), transparent 60%);
+  animation: ai-twinkle 1.8s ease-in-out infinite alternate;
+}
+@keyframes ai-sweep { to { transform: translateX(270%); } }
+@keyframes ai-twinkle { from { opacity: .25; } to { opacity: 1; } }
+
+/* --- плашка ожидания: шаг, секунды, полоса прогресса, отмена --- */
+.ai-loader { align-items: center; }
+.ai-loader__body { flex: 1; min-width: 0; }
+.ai-loader__row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.ai-loader .ai-loader__step { color: var(--ink); font-weight: 700; }
+.ai-loader .ai-loader__time { flex: none; font-size: .85rem; font-variant-numeric: tabular-nums; }
+.ai-loader__bar { height: 6px; margin: 9px 0 7px; border-radius: 99px; background: rgba(26,31,30,.09); overflow: hidden; }
+.ai-loader__bar i { display: block; height: 100%; border-radius: inherit; transform-origin: left center; transform: scaleX(0); background: linear-gradient(90deg, var(--accent), var(--peach), var(--mint-2)); transition: transform .35s linear; }
+.ai-loader .ai-loader__hint { display: block; font-size: .8rem; line-height: 1.35; }
+.ai-loader__cancel { flex: none; align-self: center; background: none; border: 0; padding: 8px 4px; min-height: 44px; font: inherit; font-size: .82rem; font-weight: 700; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ai-loader__cancel:hover { color: var(--accent); }
+.ai-loader.is-done .ai-loader__orb { animation: none; background: var(--accent); }
+.ai-loader.is-done .ai-loader__bar i { transition-duration: .4s; }
+.ai-loader:not([hidden]) { animation: ai-pop .35s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes ai-pop { from { opacity: 0; transform: translateY(10px); } }
+
+/* --- результат: проявляется из размытия --- */
+.stage__ai { z-index: 1; transition: opacity .35s; }
+.stage__ai.is-in { animation: ai-reveal .9s cubic-bezier(.2,.8,.2,1) both; }
+.stage__inner.is-ai-before .stage__ai { opacity: 0; }
+@keyframes ai-reveal { from { opacity: 0; filter: blur(14px) saturate(.6); transform: scale(1.02); } }
+
+/* --- кнопки под результатом --- */
+.ai-actions { width: 100%; max-width: 640px; margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+.ai-actions__cap { flex: 1 1 100%; text-align: center; font-size: .82rem; color: var(--ink-2); line-height: 1.35; }
+.ai-actions .btn--wa .ico { color: #1FAF57; }
+
+@media (max-width: 560px) {
+  .ai-loader { inset: auto 8px 8px 8px; padding: 12px 14px; gap: 10px; }
+  .ai-loader__orb { width: 28px; height: 28px; }
+  .ai-actions .btn { flex: 1 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-scan::before, .ai-scan::after, .stage__ai.is-in, .ai-loader:not([hidden]) { animation: none; }
+  .ai-scan { background: rgba(255,255,255,.18); }
+}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Шторы на заказ в Иркутске — пошив под ключ, бельё и текстиль | шторКа</title>
+  <title>Шторы на заказ в Иркутске — пошив под ключ, бельё и текстиль | ШторКа</title>
   <meta name="description" content="Шторы на заказ в Иркутске: замер, эскиз, пошив и навеска под ключ. Постельное бельё, полотенца, пледы и детский текстиль. Примерьте шторы по фото онлайн. ТЦ «Октябрьский», 2 этаж.">
   <meta name="theme-color" content="#F8F7F4">
   <link rel="canonical" href="https://example.ru/"><!-- ЗАМЕНИТЬ на домен -->
@@ -11,29 +11,40 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ru_RU">
-  <meta property="og:title" content="шторКа — всё для уютного дома в Иркутске">
+  <meta property="og:title" content="ШторКа — всё для уютного дома в Иркутске">
   <meta property="og:description" content="Шторы по вашим размерам под ключ, бельё, полотенца и пледы. Пришлите фото комнаты — предложим комплект и цену.">
   <meta property="og:url" content="https://example.ru/">
   <meta property="og:image" content="https://example.ru/assets/og-cover.jpg"><!-- ЗАМЕНИТЬ: 1200×630 -->
 
-  <!-- Шрифты: Unbounded (заголовки) + Manrope (текст), с кириллицей -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700;800&display=swap&subset=cyrillic" rel="stylesheet">
-
+  <!-- Шрифты: Philosopher (заголовки) + Manrope (текст), с кириллицей -->
+  <!-- шрифты свои (assets/fonts); те, что нужны первому экрану, начинаем качать сразу -->
+  <link rel="preload" href="assets/fonts/philosopher-cyrillic-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="ai-tryon.css"><!-- ИИ-примерка: экран ожидания и результат -->
   <!-- Класс .js ставим сразу, чтобы интро-шторы были с первого кадра. Если app.js не загрузится — через 4 с всё покажется -->
-  <script>document.documentElement.classList.add('js');setTimeout(function(){if(!window.__appReady)document.documentElement.classList.add('no-app')},4000);</script>
+  <script>
+  /* Всегда начинаем с первого экрана: убираем якорь из адреса (#reviews и т. п. от прошлого клика по меню)
+     и не даём браузеру вернуть прошлую прокрутку */
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; if (location.hash) history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  window.scrollTo(0, 0);
+</script>
+<script>document.documentElement.classList.add('js');/* Запасной вид (снимок штор вместо 3D) включаем, только если скрипты так и не загрузились за 20 с. Раньше это было через 4 с: на медленном интернете three.js не успевал скачаться — загрузочный экран пропадал, а вместо открытия штор показывались надписи и недогруженный снимок. */setTimeout(function(){var d=document.documentElement;if(!window.__appReady&&!d.classList.contains('loaded')){d.classList.add('no-app','loaded')}},20000);</script>
+<link rel="modulepreload" href="curtains.js">
+<link rel="preload" href="assets/room.hdr" as="fetch" crossorigin="anonymous" fetchpriority="high"><!-- свет комнаты для штор: качаем сразу, параллельно со скриптами -->
+<link rel="modulepreload" href="vendor/three.min.js">
 
   <!-- schema.org LocalBusiness -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "HomeGoodsStore",
-    "name": "шторКа",
+    "name": "ШторКа",
     "description": "Салон домашнего текстиля: шторы на заказ под ключ, постельное бельё, полотенца, пледы, детский текстиль.",
     "url": "https://example.ru/",
-    "telephone": ["+7 984 926-87-71", "+7 984 358-25-82"],
+    "telephone": ["+7 (3952) 96-67-71", "+7 924 620-00-22", "+7 914 926-67-71"],
+    "email": "akasha_07@mail.ru",
+    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "bestRating": "5", "ratingCount": "96" },
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "ул. Ф. Энгельса, 34, ТЦ «Октябрьский», 2 этаж",
@@ -54,6 +65,18 @@
 </head>
 <body data-theme="hero">
 
+<!-- Загрузочный экран: латунный карниз заполняется кольцами, отсчёт 100 → 1 (ровно, по времени). Управляет curtains.js; за ним прогреваются 3D-шторы -->
+<div class="loader" id="loader" role="status" aria-label="Загрузка сайта">
+  <p class="loader__logo">Штор<span>К</span>а</p>
+  <div class="loader__rod" aria-hidden="true"><span class="loader__fill"></span><div class="loader__rings" id="loader-rings"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><i style="--i:5"></i><i style="--i:6"></i><i style="--i:7"></i><i style="--i:8"></i><i style="--i:9"></i><i style="--i:10"></i><i style="--i:11"></i><i style="--i:12"></i><i style="--i:13"></i></div></div>
+  <p class="loader__num" aria-hidden="true" id="loader-num"><span class="loader__strip"><i>100</i><i>99</i><i>98</i><i>97</i><i>96</i><i>95</i><i>94</i><i>93</i><i>92</i><i>91</i><i>90</i><i>89</i><i>88</i><i>87</i><i>86</i><i>85</i><i>84</i><i>83</i><i>82</i><i>81</i><i>80</i><i>79</i><i>78</i><i>77</i><i>76</i><i>75</i><i>74</i><i>73</i><i>72</i><i>71</i><i>70</i><i>69</i><i>68</i><i>67</i><i>66</i><i>65</i><i>64</i><i>63</i><i>62</i><i>61</i><i>60</i><i>59</i><i>58</i><i>57</i><i>56</i><i>55</i><i>54</i><i>53</i><i>52</i><i>51</i><i>50</i><i>49</i><i>48</i><i>47</i><i>46</i><i>45</i><i>44</i><i>43</i><i>42</i><i>41</i><i>40</i><i>39</i><i>38</i><i>37</i><i>36</i><i>35</i><i>34</i><i>33</i><i>32</i><i>31</i><i>30</i><i>29</i><i>28</i><i>27</i><i>26</i><i>25</i><i>24</i><i>23</i><i>22</i><i>21</i><i>20</i><i>19</i><i>18</i><i>17</i><i>16</i><i>15</i><i>14</i><i>13</i><i>12</i><i>11</i><i>10</i><i>9</i><i>8</i><i>7</i><i>6</i><i>5</i><i>4</i><i>3</i><i>2</i><i>1</i></span></p>
+</div>
+<!-- Загрузка стартует сразу, не дожидаясь curtains.js (на телефоне он грузится несколько секунд).
+     Длительность: 4500 мс, повторный заход за сессию 2500, «меньше движения» 400 — те же числа, что SETTINGS.loader в curtains.js -->
+<script>(function(){var l=document.getElementById('loader');if(!l)return;var seen=false;try{seen=sessionStorage.getItem('curtains-seen')==='1'}catch(e){}
+var ms=matchMedia('(prefers-reduced-motion: reduce)').matches?400:seen?2500:4500;
+l.style.setProperty('--ld',ms+'ms');l.style.setProperty('--l0','0ms');l.dataset.ms=ms;l.dataset.t0=Math.round(performance.now());l.classList.add('run');})();</script>
+
 <!-- SVG: фильтр преломления для «жидкого стекла» + спрайт иконок -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
@@ -71,7 +94,7 @@
   </defs>
   <symbol id="i-wa" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z"/><path fill="currentColor" d="M9.1 7.6c.2 0 .5 0 .6.4l.8 1.8c.1.2 0 .5-.1.7l-.6.7c.6 1.2 1.6 2.2 2.9 2.9l.7-.6c.2-.2.5-.2.7-.1l1.8.8c.3.1.4.4.4.6 0 1.2-1 2-2.2 1.9-3.4-.4-6.4-3.3-6.8-6.8-.1-1.2.7-2.3 1.8-2.3z"/></symbol>
   <symbol id="i-tg" viewBox="0 0 24 24"><path fill="currentColor" d="M21.2 4.1 2.9 11.2c-1 .4-.9 1.8.1 2.1l4.5 1.4 1.7 5.4c.3.8 1.3 1 1.9.4l2.6-2.5 4.7 3.4c.8.6 1.8.1 2-.8l2.9-14c.2-1-.8-1.8-1.6-1.5zM9.8 14.6l-.4 3.6-1.3-4.2 9.6-6.2-7.9 6.8z"/></symbol>
-  <symbol id="i-max" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="currentColor" d="M6.8 16.5V7.6h1.9l3.3 4.6 3.3-4.6h1.9v8.9h-2v-5.6l-3.2 4.3-3.2-4.3v5.6z"/></symbol>
+  <symbol id="i-max" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12 2.4a9.4 9.4 0 1 1-4.6 17.6l-3.6 1.2a.8.8 0 0 1-1-1l1.2-3.6A9.4 9.4 0 0 1 12 2.4Zm0 5a4.6 4.6 0 1 0 0 9.2 4.6 4.6 0 0 0 0-9.2Z"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M6.6 3.5h2.6l1.3 4.3-2 1.4a12 12 0 0 0 6.3 6.3l1.4-2 4.3 1.3v2.6c0 1.2-1 2.1-2.2 2.1C10.3 19.2 4.8 13.7 4.5 5.7c0-1.2.9-2.2 2.1-2.2z"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="m12 2.8 2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></symbol>
@@ -82,6 +105,7 @@
   <symbol id="i-spark" viewBox="0 0 24 24"><path fill="currentColor" d="M11 2.5c.4 3.6 1.9 5.1 5.5 5.5-3.6.4-5.1 1.9-5.5 5.5-.4-3.6-1.9-5.1-5.5-5.5 3.6-.4 5.1-1.9 5.5-5.5zm7 10c.3 2.2 1.1 3 3.3 3.3-2.2.3-3 1.1-3.3 3.3-.3-2.2-1.1-3-3.3-3.3 2.2-.3 3-1.1 3.3-3.3zM6.5 15c.2 1.6.9 2.3 2.5 2.5-1.6.2-2.3.9-2.5 2.5-.2-1.6-.9-2.3-2.5-2.5 1.6-.2 2.3-.9 2.5-2.5z"/></symbol>
   <symbol id="i-gift" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 10h16v10H4zM3 7h18v3H3zM12 7v13M12 7C10 3 6.5 4 7.5 6.2 8.2 7.3 12 7 12 7zm0 0c2-4 5.5-3 4.5-.8C15.8 7.3 12 7 12 7z"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-ruler" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M3 15 15 3l6 6L9 21z"/><path stroke="currentColor" stroke-width="1.8" d="m7 11 2 2m1-5 2 2m1-5 2 2"/></symbol>
   <symbol id="i-chat" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M4 5h16v11H9l-5 4z"/></symbol>
 </svg>
 
@@ -98,16 +122,18 @@
 <!-- ============ ШАПКА: плавающая стеклянная таблетка ============ -->
 <header class="header" id="header">
   <div class="header__pill glass glass--refract">
-    <a class="logo" href="#top" aria-label="шторКа — на главную">шторка<span>.</span></a>
+    <a class="logo" href="#top" aria-label="ШторКа — на главную">Штор<span>К</span>а</a>
     <nav class="nav" aria-label="Основное меню">
+      <span class="nav__blob" aria-hidden="true"></span>
       <a href="#hits">Хиты</a>
-      <a href="#tryon">Примерочная</a>
       <a href="#process">Как мы работаем</a>
+      <a href="#tryon">Примерочная</a>
+      <a href="#textile">Текстиль</a>
+      <a href="#salon">Салон</a>
       <a href="#reviews">Отзывы</a>
       <a href="#gifts">Подарки</a>
       <a href="#contacts">Контакты</a>
     </nav>
-    <a class="btn btn--pearl btn--sm header__cta" href="#tryon">Подобрать шторы по фото</a>
     <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="mobile-menu">
       <span></span><span></span>
     </button>
@@ -116,13 +142,14 @@
   <div class="sheet glass" id="mobile-menu" hidden>
     <nav aria-label="Мобильное меню">
       <a href="#hits">Хиты</a>
-      <a href="#tryon">Примерочная</a>
       <a href="#process">Как мы работаем</a>
+      <a href="#tryon">Подобрать шторы по фото</a>
+      <a href="#textile">Домашний текстиль</a>
+      <a href="#salon">Салон</a>
       <a href="#reviews">Отзывы</a>
       <a href="#gifts">Подарки</a>
       <a href="#contacts">Контакты</a>
     </nav>
-    <a class="btn btn--pearl btn--block" href="#tryon">Подобрать шторы по фото</a>
     <div class="sheet__msgr" data-messengers></div>
   </div>
 </header>
@@ -133,61 +160,108 @@
 <section class="hero" id="top" data-theme="hero" aria-labelledby="hero-title">
   <!-- Шторы с физикой (curtains.js) ЗА стеклом: ткань видна сквозь панель слегка искажённой -->
   <div class="hero__window" aria-hidden="true">
+    <!-- свет из окна: свечение и лучи ЗА шторами (видны только в просвете), дымка — поверх кромок ткани -->
+    <div class="hero__light"><span class="hero__glow"></span><span class="hero__rays"></span></div>
     <canvas class="hero__curtains" id="curtain-canvas"></canvas>
+    <span class="hero__haze"></span>
   </div>
-  <div class="container hero__grid">
-    <div class="hero__text glass glass--hero reveal">
-      <p class="chip reveal"><svg class="ico"><use href="#i-pin"/></svg>ТЦ «Октябрьский» · 2 этаж</p>
-      <h1 class="hero__title reveal" id="hero-title">Всё для уютного дома — <em>от наволочки до окна</em> под ключ</h1>
-      <p class="hero__lead reveal">Бельё, полотенца, одеяла и шторы по вашим размерам. Пришлите фото комнаты — предложим комплект и цену.</p>
-      <div class="hero__actions reveal">
-        <a class="btn btn--pearl btn--lg" href="#tryon">Подобрать шторы по фото<svg class="ico"><use href="#i-arrow"/></svg></a>
-        <button class="btn btn--glass btn--lg" type="button" data-open-contact>Связаться</button>
-      </div>
+  <!-- Первый экран (раунд 3, вариант 1): одна ось — логотип, заголовок, кнопки; факты одной строкой внизу.
+       Логотип лежит МЕЖДУ светом окна и 3D-шторами (z-index в styles.css, блок 21) — проявляется в просвете при открытии. -->
+  <div class="container hero__stage">
+    <div class="hero__sign reveal" aria-hidden="true"><span class="hero__tagline">Салон домашнего текстиля</span><span class="hero__wm">Штор<b>К</b>а</span></div>
+    <h1 class="hero__title reveal" id="hero-title">Всё для <em>уютного дома</em></h1>
+    <!-- Кнопки первого экрана (24.11, v2): сверху два главных пути (бирюза) — шторы и текстиль, с подписью;
+         ниже — спокойная стеклянная «Посмотреть наш салон» -->
+    <div class="hero__actions hero__actions--grid reveal">
+      <a class="btn btn--pearl btn--lg btn--magnet hero__btn-duo" href="#tryon"><span class="hero__btn-main">Шторы</span><span class="hero__btn-sub">готовые и на заказ</span></a>
+      <a class="btn btn--pearl btn--lg btn--magnet hero__btn-duo" href="#textile"><span class="hero__btn-main">Домашний текстиль</span><span class="hero__btn-sub">бельё, пледы, полотенца</span></a>
+      <a class="btn btn--glass btn--magnet hero__btn-salon" href="#salon"><svg class="ico"><use href="#i-camera"/></svg>Наш салон<span class="hero__btn-arrow" aria-hidden="true">→</span></a>
+      <!-- Три факта о салоне (перенесены из блока «Наш салон», 24.11) -->
+      <ul class="hero__facts" aria-label="О салоне">
+        <li><b>Более 10 лет</b><span>на рынке домашнего текстиля</span></li>
+        <li><b>Большой выбор тканей</b><span>в наличии и под заказ</span></li>
+        <li><b>Своя швейная мастерская</b><span>с профессиональным оборудованием</span></li>
+      </ul>
     </div>
-
-    <!-- Бенто по согласованному макету: фото-плитка с рейтингом, бирюзовая плитка «Замер», персиковая плитка -->
-    <div class="hero__mosaic" aria-label="Фото салона">
-      <figure class="tile tile--photo glass m1 reveal">
-        <div class="ph" data-label="Фото: светлая гостиная со шторами"></div>
-        <a class="tile__rating" href="#reviews" aria-label="Рейтинг 4,9 — отзывы">
-          <span class="tile__rating-num">4,9</span>
-          <span class="tile__rating-src">оценка в&nbsp;2ГИС<br>и&nbsp;Яндексе</span>
-        </a>
-      </figure>
-      <div class="tile tile--accent m2 reveal">
-        <p class="tile__title">Замер с образцами тканей</p>
-        <button class="btn btn--white btn--sm" type="button" data-open-contact>Записаться</button>
-      </div>
-      <figure class="tile tile--photo tile--peach glass m3 reveal">
-        <div class="ph ph--peach" data-label="Бельё из тенселя по размерам"></div>
-      </figure>
+    <div class="hero__rail reveal">
+      <a class="hero__fact" href="#reviews"><svg class="ico ico--star"><use href="#i-star"/></svg><b>4,9</b> в 2ГИС · <b>4,8</b> в Яндекс Картах</a>
+      <i aria-hidden="true"></i>
+      <a class="hero__fact" href="#contacts"><svg class="ico"><use href="#i-pin"/></svg>ТЦ «Октябрьский», 2 этаж</a>
     </div>
   </div>
-  <a class="scroll-hint" href="#hits" aria-label="Листать вниз"><span></span></a>
 </section>
 
 <!-- ============ ЭКРАН 2. ХИТЫ САЛОНА ============ -->
 <section class="section" id="hits" data-theme="hits" aria-labelledby="hits-title">
   <div class="container">
     <div class="section__head">
+      <p class="eyebrow plate reveal"><span class="dot" aria-hidden="true"></span>Хиты</p>
       <h2 class="h2 plate reveal" id="hits-title">Хиты салона</h2>
-      <p class="section__note plate reveal">Полный ассортимент — в салоне и в приложении UDS</p>
+      <p class="section__note plate reveal">Полный ассортимент — в салоне</p>
     </div>
 
-    <div class="seg glass reveal" role="tablist" aria-label="Категории товаров" id="hits-tabs">
-      <span class="seg__blob" aria-hidden="true"></span>
-      <button role="tab" aria-selected="true" data-cat="curtains">Шторы</button>
-      <button role="tab" aria-selected="false" data-cat="bedding">Бельё</button>
-      <button role="tab" aria-selected="false" data-cat="plaids">Пледы и покрывала</button>
-      <button role="tab" aria-selected="false" data-cat="kids">Детское</button>
-    </div>
-
-    <div class="products" id="products" role="tabpanel" aria-live="polite"></div>
+  </div>
+  <!-- Бегущая строка товаров: только фото + название, без кликов. Карточки собирает app.js из PRODUCTS (initHits).
+       Анимация — только transform на CSS, пауза вне экрана и при наведении; при «уменьшении движения» — ручная прокрутка. -->
+  <div class="marquee reveal" id="hits-marquee" aria-label="Товары салона">
+    <div class="marquee__track" id="hits-track"></div>
   </div>
 </section>
 
-<!-- ============ ЭКРАН 3. ПРИМЕРОЧНАЯ ШТОР ПО ФОТО ============ -->
+<!-- ============ ЭКРАН 3. КАК МЫ РАБОТАЕМ (после хитов, 24.11) ============ -->
+<section class="section" id="process" data-theme="process" aria-labelledby="process-title">
+  <div class="container">
+    <div class="section__head">
+      <p class="eyebrow plate reveal"><span class="dot" aria-hidden="true"></span>Как мы работаем</p>
+      <h2 class="h2 plate reveal" id="process-title">«Окно под ключ»</h2>
+    </div>
+
+    <!-- Два пути: самостоятельно в салоне и с выездом дизайнера (без слов «бесплатно / за доплату», 24.11). На телефоне — тоже два столбика рядом. -->
+    <p class="ways__lead plate reveal">Выберите, как вам удобнее: прийти в салон самим или доверить нам весь путь — от замера до готовых штор на окне.</p>
+    <div class="ways">
+      <article class="way way--free glass reveal" aria-labelledby="way-free-title">
+        <h3 class="way__title" id="way-free-title">Самостоятельно в салоне</h3>
+        <p class="way__sub">Для тех, кто любит выбирать вживую</p>
+        <ol class="way__steps">
+          <li><b>Замер</b><span>Вы сами снимаете размеры окна — это займёт пару минут.</span></li>
+          <li><b>Выбор ткани</b><span>Приходите в салон и выбираете ткань вживую: трогаете, сравниваете фактуры и оттенки.</span></li>
+          <li><b>Расчёт</b><span>Консультант сразу считает стоимость под ваши размеры и выбранную ткань.</span></li>
+          <li><b>Пошив</b><span>Шьём шторы точно по вашим меркам в своей швейной мастерской.</span></li>
+        </ol>
+        <a class="btn btn--pearl btn--magnet way__btn" href="#contacts">Как нас найти</a>
+      </article>
+      <article class="way way--paid glass reveal" aria-labelledby="way-paid-title">
+        <h3 class="way__title" id="way-paid-title">С выездом дизайнера</h3>
+        <p class="way__sub">Для тех, кто ценит своё время — всё сделаем у вас дома</p>
+        <ol class="way__steps">
+          <li><b>Выезд на замер</b><span>Дизайнер приезжает к вам и снимает точные мерки прямо на месте.</span></li>
+          <li><b>Ткани с собой</b><span>Привозим образцы — выбираете вместе с дизайнером, глядя на своё окно и интерьер.</span></li>
+          <li><b>Расчёт на месте</b><span>Называем стоимость сразу — никуда ехать не нужно.</span></li>
+          <li><b>Пошив в своей мастерской</b><span>Собственная швейная мастерская и профессиональное оборудование.</span></li>
+          <li><b>Навеска</b><span>Мастер снова приезжает и вешает готовые шторы — вам остаётся только задёрнуть их вечером.</span></li>
+        </ol>
+        <button class="btn btn--pearl btn--magnet way__btn" type="button" data-zamer aria-label="Записаться на замер"><span>Записаться<span class="way__btn-x"> на замер</span></span></button>
+      </article>
+    </div>
+
+    <div class="bonus-grid">
+      <div class="bonus glass reveal">
+        <h3 class="h3">Справимся и со сложными окнами</h3>
+        <p>Подберём крепление и крой там, где типовые решения не подходят.</p>
+        <ul class="chips chips--win" id="win-chips" aria-label="Сложные окна — нажмите, чтобы посмотреть примеры">
+          <li><button type="button" data-win="erker" aria-haspopup="dialog">эркеры</button></li><li><button type="button" data-win="attic" aria-haspopup="dialog">мансардные</button></li><li><button type="button" data-win="panorama" aria-haspopup="dialog">панорамные</button></li><li><button type="button" data-win="arch" aria-haspopup="dialog">арки</button></li><li><button type="button" data-win="custom" aria-haspopup="dialog">нестандартные размеры</button></li>
+        </ul>
+      </div>
+      <div class="bonus glass reveal">
+        <h3 class="h3">Для бизнеса</h3>
+        <p>Оформляем текстилем кафе, офисы, гостиницы и салоны — от штор до белья и полотенец.</p>
+        <div class="pills pills--biz" id="biz-pills"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ЭКРАН 4.5. ПРИМЕРОЧНАЯ ШТОР ПО ФОТО (сразу после «Как мы работаем» — тоже про шторы, 24.11) ============ -->
 <section class="section tryon" id="tryon" data-theme="tryon" aria-labelledby="tryon-title">
   <div class="container">
     <div class="section__head section__head--center">
@@ -202,7 +276,7 @@
         <div class="dropzone" id="dropzone">
           <div class="dropzone__icon"><svg class="ico"><use href="#i-upload"/></svg></div>
           <p class="dropzone__title">Загрузите фото окна или комнаты</p>
-          <p class="dropzone__hint">Фото обрабатывается прямо в браузере и никуда не отправляется</p>
+          <p class="dropzone__hint">Подгонка работает прямо в браузере. Нейросети фото уходит, только когда вы нажмёте «Сделать реалистично»</p>
           <div class="dropzone__actions">
             <label class="btn btn--pearl">
               <svg class="ico"><use href="#i-upload"/></svg>Выбрать фото
@@ -219,6 +293,7 @@
         <div class="stage__inner" id="stage-inner" hidden>
           <canvas id="tryon-canvas" aria-label="Ваше фото с примеркой штор"></canvas>
           <img class="stage__ai" id="ai-result" alt="Реалистичная версия от нейросети" hidden>
+          <div class="ai-scan" aria-hidden="true"></div>
           <button class="handle" data-corner="0" aria-label="Левый верхний угол окна. Двигайте стрелками"></button>
           <button class="handle" data-corner="1" aria-label="Правый верхний угол окна. Двигайте стрелками"></button>
           <button class="handle" data-corner="2" aria-label="Правый нижний угол окна. Двигайте стрелками"></button>
@@ -227,9 +302,22 @@
         </div>
 
         <!-- Индикатор генерации нейросетью -->
-        <div class="ai-loader glass" id="ai-loader" hidden role="status" aria-live="polite">
-          <span class="ai-loader__orb"></span>
-          <p><b>Подбираем свет и складки…</b><br><span>10–30 сек</span></p>
+        <div class="ai-loader glass" id="ai-loader" hidden>
+          <span class="ai-loader__orb" aria-hidden="true"></span>
+          <div class="ai-loader__body">
+            <p class="ai-loader__row"><b class="ai-loader__step" id="ai-step" role="status" aria-live="polite">Изучаем комнату и окно…</b><span class="ai-loader__time" id="ai-time" aria-hidden="true">0 с</span></p>
+            <div class="ai-loader__bar" aria-hidden="true"><i id="ai-bar"></i></div>
+            <span class="ai-loader__hint">Обычно около 30 секунд — можно пока выбрать ткань для следующей примерки</span>
+          </div>
+          <button class="ai-loader__cancel" type="button" id="ai-cancel">Отменить</button>
+        </div>
+
+        <!-- Кнопки под результатом нейросети -->
+        <div class="ai-actions" id="ai-actions" hidden>
+          <p class="ai-actions__cap" id="ai-caption"></p>
+          <a class="btn btn--pearl btn--sm btn--wa" id="ai-wa" href="#" target="_blank" rel="noopener"><svg class="ico"><use href="#i-wa"/></svg>Отправить в WhatsApp</a>
+          <button class="btn btn--glass btn--sm" type="button" id="ai-before" aria-pressed="false">Было / стало</button>
+          <button class="btn btn--glass btn--sm" type="button" id="ai-close">Вернуться к подгонке</button>
         </div>
       </div>
 
@@ -285,117 +373,94 @@
   </div>
 </section>
 
-<!-- ============ ЭКРАН 4. КАК МЫ РАБОТАЕМ ============ -->
-<section class="section" id="process" data-theme="process" aria-labelledby="process-title">
+<!-- ============ ЭКРАН 4. ВЫБРАТЬ ДОМАШНИЙ ТЕКСТИЛЬ (веер из стопки) ============ -->
+<!-- Карточки лежат стопкой; по кнопке «Разложить» разлетаются в сетку. Анимируется только transform (app.js → initTextile).
+     Без JS карточки просто стоят сеткой. Фото и названия — массив TEXTILE в app.js. -->
+<section class="section" id="textile" data-theme="textile" aria-labelledby="textile-title">
   <div class="container">
-    <div class="section__head">
-      <p class="eyebrow plate reveal"><span class="dot" aria-hidden="true"></span>Как мы работаем</p>
-      <h2 class="h2 plate reveal" id="process-title">Окно под ключ</h2>
+    <div class="section__head section__head--center textile__head">
+      <p class="eyebrow plate reveal"><span class="dot" aria-hidden="true"></span>Текстиль</p>
+      <h2 class="h2 plate reveal" id="textile-title">Выбрать домашний текстиль</h2>
+      <p class="section__note plate reveal" id="textile-hint" aria-live="polite">Целая стопка уюта — разложим?</p>
+      <button class="btn btn--pearl btn--lg reveal" type="button" id="textile-toggle" aria-expanded="false" aria-controls="textile-stack">Разложить</button>
     </div>
-
-    <div class="process">
-      <ol class="steps">
-        <li class="step glass reveal">
-          <span class="step__num">01</span>
-          <h3>Замер</h3>
-          <p>Приезжаем с образцами тканей, снимаем размеры и смотрим свет в комнате.</p>
-          <span class="step__note">замер платный</span>
-        </li>
-        <li class="step glass reveal">
-          <span class="step__num">02</span>
-          <h3>Эскиз и цена</h3>
-          <p>Предлагаем решение — портьеры, тюль, римские или рулонные — и называем точную стоимость.</p>
-        </li>
-        <li class="step glass reveal">
-          <span class="step__num">03</span>
-          <h3>Пошив</h3>
-          <p>Шьём из тканей, которые есть в наличии, — без долгого ожидания поставки.</p>
-        </li>
-        <li class="step glass reveal">
-          <span class="step__num">04</span>
-          <h3>Карниз, навеска, отпаривание</h3>
-          <p>Устанавливаем карниз, вешаем и отпариваем — вы просто открываете шторы.</p>
-          <span class="step__note">монтаж и карнизы оплачиваются отдельно</span>
-        </li>
-      </ol>
-      <figure class="process__photo glass reveal">
-        <div class="ph ph--tall" data-label="Фото: мастер отпаривает шторы на объекте / кейс «до и после»"></div>
-      </figure>
-    </div>
-
-    <div class="bonus-grid">
-      <div class="bonus glass reveal">
-        <h3 class="h3">Справимся и со сложными окнами</h3>
-        <p>Подберём крепление и крой там, где типовые решения не подходят.</p>
-        <ul class="chips" aria-label="Сложные окна">
-          <li>эркеры</li><li>мансардные</li><li>панорамные</li><li>арки</li><li>нестандартные размеры</li>
-        </ul>
-      </div>
-      <div class="bonus glass reveal">
-        <h3 class="h3">Для бизнеса</h3>
-        <p>Оформляем текстилем кафе, офисы, гостиницы и салоны — от штор до белья и полотенец.</p>
-        <div class="pills pills--biz" id="biz-pills"></div>
-      </div>
-    </div>
+    <ul class="fan reveal" id="textile-stack" data-state="closed" aria-label="Домашний текстиль в салоне"></ul>
   </div>
 </section>
 
-<!-- ============ ЭКРАН 5. КЕЙСЫ ДО / ПОСЛЕ ============ -->
-<section class="section" id="works" data-theme="works" aria-labelledby="works-title">
+<!-- ============ ЭКРАН 5. НАШ САЛОН (вариант «факты полосой по фото», 24.11) ============ -->
+<!-- Сюда ведёт кнопка «Посмотреть салон» с первого экрана. Фото салона — фоном всего блока.
+     Настоящее фото: заменить <div class="ph ..."> на <img class="salon2__img" src="assets/salon/salon.webp" alt="Салон ШторКа в ТЦ «Октябрьский»" width="1600" height="1000" loading="lazy" decoding="async"> -->
+<section class="section" id="salon" data-theme="salon" aria-labelledby="salon-title">
   <div class="container">
-    <div class="section__head section__head--row">
-      <h2 class="h2 plate reveal" id="works-title">Наши работы</h2>
-      <div class="slider-nav reveal">
-        <button class="btn btn--glass btn--icon" type="button" id="case-prev" aria-label="Предыдущая работа"><svg class="ico flip"><use href="#i-arrow"/></svg></button>
-        <span class="slider-count" id="case-count" aria-live="polite">1 / 10</span>
-        <button class="btn btn--glass btn--icon" type="button" id="case-next" aria-label="Следующая работа"><svg class="ico"><use href="#i-arrow"/></svg></button>
+    <div class="section__head section__head--center salon2__top">
+      <p class="eyebrow plate reveal"><span class="dot" aria-hidden="true"></span>Наш салон</p>
+    </div>
+    <div class="salon2 reveal">
+      <div class="ph salon2__img" data-label="Фото салона: общий вид зала, горизонтальное" aria-hidden="true"></div>
+      <span class="salon2__scrim" aria-hidden="true"></span>
+      <div class="salon2__sheet">
+      <div class="salon2__head">
+        <h2 class="salon2__title" id="salon-title">Выбирайте ткани вживую</h2>
+        <p class="salon2__lead">Потрогайте фактуру, сравните оттенки при свете — и сразу узнайте цену.</p>
+        <a class="btn btn--pearl btn--magnet btn--lg" href="#contacts">Как нас найти</a>
+      </div>
       </div>
     </div>
-    <div class="cases reveal" id="cases" aria-roledescription="карусель" aria-label="Работы до и после">
-      <div class="cases__track" id="cases-track"></div>
-    </div>
+    <p class="salon2__addr reveal"><b>ТЦ «Октябрьский», 2 этаж</b> · ул. Ф. Энгельса, 34 · ежедневно 10:00–20:00</p>
   </div>
 </section>
 
 <!-- ============ ЭКРАН 6. ОТЗЫВЫ И РЕЙТИНГ ============ -->
 <section class="section reviews" id="reviews" data-theme="reviews" aria-labelledby="reviews-title">
   <div class="container">
+    <div class="section__head section__head--center">
+      <p class="eyebrow plate reveal"><span class="dot" aria-hidden="true"></span>Отзывы</p>
+    </div>
     <div class="reviews__top">
-      <div class="score plate reveal">
+      <div class="score glass reveal">
         <h2 class="visually-hidden" id="reviews-title">Отзывы</h2>
-        <p class="score__num">4,9<svg class="ico"><use href="#i-star"/></svg></p>
-        <p class="score__cap">средняя оценка</p>
+        <p class="score__num" aria-label="Средняя оценка 4,9 из 5">4,9</p>
+        <div class="score__info">
+          <span class="score__stars" aria-hidden="true"><svg class="ico"><use href="#i-star"/></svg><svg class="ico"><use href="#i-star"/></svg><svg class="ico"><use href="#i-star"/></svg><svg class="ico"><use href="#i-star"/></svg><svg class="ico"><use href="#i-star"/></svg></span>
+          <p class="score__cap">средняя оценка</p>
+          <p class="score__src"><i class="score__dot score__dot--gis"></i>2ГИС<i class="score__dot score__dot--ya"></i>Яндекс Карты</p>
+        </div>
       </div>
       <div class="reviews__ctrl reveal">
         <div class="seg seg--platform glass" role="tablist" aria-label="Площадка отзывов" id="platform-tabs">
           <span class="seg__blob" aria-hidden="true"></span>
-          <button role="tab" aria-selected="true" data-platform="yandex">Яндекс</button>
-          <button role="tab" aria-selected="false" data-platform="gis">2ГИС</button>
+          <button role="tab" aria-selected="true" data-platform="gis">2ГИС</button>
+          <button role="tab" aria-selected="false" data-platform="yandex">Яндекс</button>
         </div>
         <a class="btn btn--glass" id="all-reviews" href="#" target="_blank" rel="noopener">Все отзывы на картах<svg class="ico"><use href="#i-arrow"/></svg></a>
       </div>
     </div>
 
-    <div class="reviews__panel glass" id="reviews-panel" data-platform="yandex">
+    <div class="reviews__panel glass" id="reviews-panel" data-platform="gis">
       <div class="review-list" id="review-list" role="tabpanel" aria-live="polite"></div>
     </div>
 
+    <!-- Сообщения клиентов из мессенджеров. Сейчас — образцы; настоящие вставим позже (массив PERSONAL в app.js) -->
     <h3 class="h3 reviews__sub reveal">Написали нам лично</h3>
     <div class="messages" id="messages"></div>
+
   </div>
 </section>
 
 <!-- ============ ЭКРАН 7. ПОДАРКИ, СЕРТИФИКАТЫ ============ -->
 <section class="section gifts" id="gifts" data-theme="gifts" aria-labelledby="gifts-title">
   <div class="container">
+    <div class="section__head section__head--center">
+      <p class="eyebrow plate reveal"><span class="dot" aria-hidden="true"></span>Подарки</p>
+    </div>
 
-    <!-- Сертификат за визит -->
+    <!-- Сертификат 1000 ₽ -->
     <div class="coupon-wrap">
       <div class="coupon glass glass--refract reveal">
-        <span class="coupon__tag"><svg class="ico"><use href="#i-gift"/></svg>За визит на сайт</span>
+        <p class="coupon__lead">Дарим сертификат на</p>
         <p class="coupon__sum">1000 ₽</p>
-        <p class="coupon__text">на покупку в салоне</p>
-        <p class="micro">Можно оплатить до 20% стоимости заказа</p>
+        <p class="micro coupon__note">* Сертификатом можно оплатить до 20% покупки. Не суммируется с другими акциями.</p>
       </div>
       <form class="lead-form glass reveal" id="coupon-form" novalidate>
         <h2 class="h3" id="gifts-title">Заберите сертификат</h2>
@@ -411,7 +476,7 @@
         </div>
         <label class="check">
           <input type="checkbox" name="consent" required>
-          <span>Соглашаюсь на <a href="consent.html" target="_blank">обработку персональных данных</a></span>
+          <span>Даю <a href="consent.html" target="_blank">согласие на обработку персональных данных</a>. Подробнее — в <a href="policy.html" target="_blank">Политике</a></span>
         </label>
         <span class="field__err" data-err="consent" aria-live="polite"></span>
         <button class="btn btn--pearl btn--block" type="submit">Получить 1000 ₽</button>
@@ -435,7 +500,7 @@
     <div class="cert glass reveal">
       <div>
         <h3 class="h3">Подарочный сертификат</h3>
-        <p class="micro">Оформление и оплата — в салоне</p>
+        <p class="cert__text">Универсальный подарок, который точно попадёт в цель: близкий человек сам выберет то, что ему по душе. В нашем салоне сертификат можно оформить на любую сумму.</p>
       </div>
       <div class="pills" id="cert-pills" role="radiogroup" aria-label="Номинал сертификата">
         <button role="radio" aria-checked="false" data-value="3000">3 000 ₽</button>
@@ -450,10 +515,17 @@
       <button class="btn btn--pearl" type="button" id="cert-btn">Оставить заявку</button>
     </div>
 
-    <div class="uds glass reveal">
-      <span class="uds__badge">UDS</span>
-      <p><b>Бонусы за каждую покупку</b> — программа лояльности UDS</p>
-    </div>
+    <!-- UDS: вся карточка — ссылка (CONFIG.uds в app.js). QR — для тех, кто смотрит сайт с компьютера.
+         Настоящий QR: assets/uds-qr.svg (заменить заглушку .ph на <img class="uds-card__qr" src="assets/uds-qr.svg" alt="QR-код UDS «ШторКа»">) -->
+    <a class="uds-card glass reveal" id="uds-link" href="#" target="_blank" rel="noopener">
+      <div class="uds-card__body">
+        <p class="uds-card__kicker">Программа лояльности UDS</p>
+        <h3 class="uds-card__title">Присоединяйтесь к нам в UDS — и получите скидку на первый заказ</h3>
+        <p class="uds-card__text">А дальше — бонусы за каждую покупку. Вступить можно за минуту<span class="uds-card__qr-hint"> — нажмите или отсканируйте QR-код</span>.</p>
+        <span class="btn btn--pearl uds-card__btn">Получить скидку в UDS <span aria-hidden="true">→</span></span>
+      </div>
+      <img class="uds-card__qr" src="assets/uds-qr.svg" alt="QR-код: вступить в UDS салона «ШторКа»" width="168" height="168" loading="lazy" decoding="async">
+    </a>
   </div>
 </section>
 
@@ -462,27 +534,34 @@
 <!-- ============ ПОДВАЛ-КОНТАКТЫ ============ -->
 <footer class="footer" id="contacts" data-theme="footer">
   <div class="container">
+    <div class="section__head section__head--center">
+      <p class="eyebrow plate reveal"><span class="dot" aria-hidden="true"></span>Контакты</p>
+    </div>
     <div class="footer__card glass glass--dark">
       <div class="footer__col">
-        <a class="logo logo--light" href="#top">шторка<span>.</span></a>
+        <a class="logo logo--light" href="#top">Штор<span>К</span>а</a>
         <p class="footer__tag">Всё для уютного дома</p>
         <address>
           <p><svg class="ico"><use href="#i-pin"/></svg>ул. Ф. Энгельса, 34, ТЦ «Октябрьский», 2 этаж, Иркутск</p>
           <p>Ежедневно 10:00–20:00</p>
-          <p><a href="tel:+79849268771">+7 984 926-87-71</a><br><a href="tel:+79843582582">+7 984 358-25-82</a></p>
-          <!-- ПРОВЕРИТЬ номера у клиента -->
+          <p class="footer__phone"><a href="tel:+73952966771">+7 (3952) 96-67-71</a><small>единый номер, пн–вс 9:00–20:00</small></p>
+          <p class="footer__phone"><a href="tel:+79246200022">+7 924 620-00-22</a></p>
+          <p class="footer__phone"><a href="tel:+79149266771">+7 914 926-67-71</a><small>WhatsApp, Telegram, MAX</small></p>
+          <p class="footer__legal">ИП Орлова Анна Анатольевна · ИНН 381302907526 · ОГРНИП 318385000008889</p>
         </address>
         <div class="footer__msgr" data-messengers></div>
       </div>
-      <a class="map-ph" id="map-link" href="#" target="_blank" rel="noopener" aria-label="Открыть салон на карте">
-        <div class="ph ph--dark" data-label="Карта: виджет Яндекс Карт или 2ГИС (вставить iframe)"></div>
-        <span class="btn btn--glass btn--sm">Открыть на карте<svg class="ico"><use href="#i-arrow"/></svg></span>
-      </a>
+      <!-- Карта: виджет Яндекс Карт с карточкой салона (oid организации). loading="lazy" — грузится только при подлёте к подвалу, первый экран не тормозит -->
+      <div class="map-ph map-ph--live">
+        <iframe class="map-ph__frame" src="https://yandex.ru/map-widget/v1/?z=16&amp;ol=biz&amp;oid=1105311263" title="ШторКа на Яндекс Картах" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+        <a class="btn btn--glass btn--sm" id="map-link" href="https://yandex.ru/maps/org/shtorka/1105311263/" target="_blank" rel="noopener">Открыть на карте<svg class="ico"><use href="#i-arrow"/></svg></a>
+      </div>
     </div>
     <div class="footer__bottom">
-      <span>© <span id="year">2026</span> шторКа, Иркутск</span>
+      <span>© <span id="year">2026</span> ШторКа, Иркутск</span>
       <a href="policy.html">Политика обработки ПДн</a>
       <a href="consent.html">Согласие на обработку ПДн</a>
+      <a class="credit" href="https://otklk.ru" target="_blank" rel="noopener" aria-label="Сайт сделан в студии Отклик"><span class="credit__mark" aria-hidden="true">О</span><small>Сделано в</small><span class="credit__logo">Отклик<i>.</i></span><svg class="credit__arr" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7 17 17 7M8 7h9v9"/></svg></a>
     </div>
   </div>
 </footer>
@@ -508,6 +587,7 @@
   <button class="modal__close" type="button" data-close aria-label="Закрыть"><svg class="ico"><use href="#i-close"/></svg></button>
   <h2 class="h3" id="contact-title">Напишите нам</h2>
   <p class="modal__lead" id="contact-lead">Ответим в течение 15 минут в рабочее время</p>
+  <p class="modal__hours"><span class="modal__dot" id="contact-dot"></span><b>Ежедневно 10:00–20:00</b><span id="contact-status"></span></p>
   <p class="msg-preview" id="contact-preview" hidden></p>
   <div class="msgr-list" id="contact-list"></div>
   <p class="micro" id="contact-copied" hidden>Текст скопирован — вставьте его в чат.</p>
@@ -528,7 +608,7 @@
   </div>
 </dialog>
 
-<!-- Для бизнеса: большое прайс-окно -->
+<!-- Окно с фото и описанием: «Сложные окна» (эркеры, арки…) и кейсы «Для бизнеса» -->
 <dialog class="modal modal--wide glass" id="biz-modal" aria-labelledby="biz-title">
   <button class="modal__close" type="button" data-close aria-label="Закрыть"><svg class="ico"><use href="#i-close"/></svg></button>
   <div id="biz-body"></div>
@@ -553,7 +633,7 @@
     </div>
     <label class="check">
       <input type="checkbox" name="consent" required>
-      <span>Соглашаюсь на <a href="consent.html" target="_blank">обработку персональных данных</a></span>
+      <span>Даю <a href="consent.html" target="_blank">согласие на обработку персональных данных</a>. Подробнее — в <a href="policy.html" target="_blank">Политике</a></span>
     </label>
     <span class="field__err" data-err="consent" aria-live="polite"></span>
     <button class="btn btn--pearl btn--block" type="submit">Отправить</button>
@@ -561,12 +641,12 @@
   <div class="lead-done" id="lead-done" hidden>
     <span class="lead-done__icon"><svg class="ico"><use href="#i-check"/></svg></span>
     <h2 class="h3">Заявка принята</h2>
-    <p>Скоро напишем вам. Если срочно — позвоните: <a href="tel:+79849268771">+7 984 926-87-71</a></p>
+    <p>Скоро напишем вам. Если срочно — позвоните: <a href="tel:+73952966771">+7 (3952) 96-67-71</a></p>
     <button class="btn btn--glass" type="button" data-close>Хорошо</button>
   </div>
 </dialog>
 
-<script type="module" src="curtains.js"></script>
+<script type="module" src="curtains.js" onerror="document.documentElement.classList.add('no-app','loaded')"></script>
 <script src="app.js" defer></script>
 </body>
 </html>

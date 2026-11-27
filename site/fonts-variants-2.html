@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>шторКа — шрифты, раунд 2 (как вариант 1)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700&family=Manrope:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Prata&family=Playfair+Display:ital,wght@0,600;1,600&family=Oranienbaum&family=Noto+Serif+Display:ital,wght@0,500;1,500&family=EB+Garamond:ital,wght@0,500;1,500&family=Old+Standard+TT:ital,wght@0,400;1,400&family=Bona+Nova:ital,wght@0,400;1,400&family=Spectral:ital,wght@0,500;1,500&family=Alice&family=Forum&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#F8F7F4; --ink:#1A1F1E; --ink-2:#4E5755; --accent:#2F7A76; --deep:#143E3D; --dark:#1E2A29;
+          --mint:#A9DFCF; --peach:#F9C9AB; --lav:#E3DAF7; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--ink); font-family:'Manrope',system-ui,sans-serif; padding:28px 20px 60px; }
+  .top { max-width:1240px; margin:0 auto 24px; display:flex; flex-wrap:wrap; gap:14px 24px; align-items:end; justify-content:space-between; }
+  .top h1 { font:700 clamp(1.4rem,2.4vw,2rem)/1.15 'Unbounded',sans-serif; letter-spacing:-.02em; }
+  .top p { color:var(--ink-2); margin-top:6px; max-width:60ch; line-height:1.5; }
+  .toggle { display:flex; gap:6px; background:#fff; padding:5px; border-radius:999px; box-shadow:0 1px 0 rgba(0,0,0,.06),0 6px 20px rgba(20,62,61,.07); }
+  .toggle button { border:0; background:none; padding:9px 16px; border-radius:999px; font:600 .9rem 'Manrope',sans-serif; cursor:pointer; color:var(--ink-2); }
+  .toggle button[aria-pressed="true"] { background:var(--accent); color:#fff; }
+  .grid { max-width:1240px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,560px),1fr)); gap:20px; }
+  body.phone .grid { grid-template-columns:repeat(auto-fill,390px); justify-content:center; }
+  .card { position:relative; border-radius:24px; padding:26px 26px 24px; background:#fff; overflow:hidden;
+          box-shadow:0 1px 0 rgba(0,0,0,.04),0 10px 30px rgba(20,62,61,.06); }
+  .card::before { content:""; position:absolute; inset:0 0 auto; height:150px; background:var(--tint); opacity:.55; z-index:0; }
+  .card > * { position:relative; z-index:1; }
+  .meta { display:flex; justify-content:space-between; align-items:center; gap:10px; font:600 .78rem/1.3 'Manrope',sans-serif; color:var(--ink-2); }
+  .num { display:inline-grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--dark); color:#fff; font-weight:700; margin-right:8px; }
+  .now { background:var(--accent); color:#fff; padding:3px 9px; border-radius:999px; font-size:.7rem; }
+  .pair { display:flex; align-items:center; }
+  .mood { font-weight:500; opacity:.85; text-align:right; }
+  .logo { font-family:var(--h); font-weight:var(--hw,700); font-size:2.6rem; line-height:1; letter-spacing:var(--ls,-.03em); color:var(--deep); margin:22px 0 18px; }
+  .logo span { color:#C9764A; }
+  .title em { font-style:italic; color:var(--accent); }
+  .title { font-family:var(--h); font-weight:var(--hw,700); font-size:clamp(1.55rem,1.6vw + 1rem,2.1rem); line-height:1.12; letter-spacing:var(--ls,-.02em); margin-bottom:12px; }
+  .lead { font-family:var(--b); font-size:1rem; line-height:1.55; color:var(--ink-2); margin-bottom:18px; }
+  .btns { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
+  .btn { font-family:var(--b); font-weight:var(--bw,600); font-size:.95rem; padding:13px 20px; border-radius:999px; border:0; cursor:pointer; }
+  .btn--main { background:var(--accent); color:#fff; }
+  .btn--ghost { background:transparent; color:var(--ink); box-shadow:inset 0 0 0 1.5px rgba(26,31,30,.2); }
+  .row { display:flex; flex-wrap:wrap; gap:8px 18px; align-items:baseline; padding-top:16px; border-top:1px solid rgba(26,31,30,.09); font-family:var(--b); font-size:.92rem; color:var(--ink-2); }
+  .row b { font-family:var(--h); font-weight:var(--hw,700); color:var(--ink); font-size:1.25rem; }
+  .price { margin-left:auto; color:var(--accent); font-family:var(--h); font-weight:var(--hw,700); font-size:1.05rem; }
+  .names { margin-top:14px; font:500 .78rem/1.4 'Manrope',sans-serif; color:var(--ink-2); }
+  .names code { background:var(--bg); padding:2px 7px; border-radius:6px; font-family:inherit; font-weight:700; color:var(--ink); }
+  body.phone .logo { font-size:2.2rem; }
+  body.phone .price { margin-left:0; }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Шрифты «шторКа» — раунд 2: изящные антиквы</h1>
+      <p>В каждой паре: первый шрифт для логотипа, заголовков и цифр, второй для текста и кнопок. Все бесплатные и с кириллицей. Карточка «0» — вариант 1 из прошлого раунда (Cormorant Garamond), остальные похожие. Текст везде Manrope, чтобы сравнивать только заголовки. Курсив в заголовке есть там, где у шрифта он настоящий.</p>
+    </div>
+    <div class="toggle" role="group" aria-label="Ширина">
+      <button type="button" data-mode="pc" aria-pressed="true">Компьютер</button>
+      <button type="button" data-mode="phone" aria-pressed="false">Телефон 390</button>
+    </div>
+  </header>
+
+  <main class="grid" id="grid"></main>
+
+<script>
+const SETS = [
+  { h:"Cormorant Garamond", mood:"Вариант 1 из прошлого раунда", tint:"var(--peach)", hw:600, ls:"-.01em", it:1, now:true },
+  { h:"Prata", mood:"Плотнее и чётче, хорошо читается мелко", tint:"var(--mint)", hw:400, ls:"-.01em" },
+  { h:"Playfair Display", mood:"Журнальный, контрастный, красивый курсив", tint:"var(--lav)", hw:600, it:1 },
+  { h:"Oranienbaum", mood:"Узкий дидон, «петербургская» роскошь", tint:"var(--peach)", hw:400, ls:"0" },
+  { h:"Noto Serif Display", mood:"Тонкий, высокий контраст, как у модных брендов", tint:"var(--mint)", hw:500, it:1 },
+  { h:"EB Garamond", mood:"Тёплая книжная классика", tint:"var(--lav)", hw:500, it:1 },
+  { h:"Old Standard TT", mood:"Старая русская типографика, винтаж", tint:"var(--peach)", hw:400, ls:"-.01em", it:1 },
+  { h:"Bona Nova", mood:"Изящный с острыми засечками, живой курсив", tint:"var(--mint)", hw:400, it:1 },
+  { h:"Spectral", mood:"Современная антиква, спокойная и ровная", tint:"var(--lav)", hw:500, it:1 },
+  { h:"Alice", mood:"Мягкая, сказочная, по-домашнему уютная", tint:"var(--peach)", hw:400, ls:"0" },
+  { h:"Forum", mood:"Римские пропорции, торжественно и светло", tint:"var(--mint)", hw:400, ls:".01em" },
+];
+const grid = document.getElementById('grid');
+grid.innerHTML = SETS.map((s,i) => `
+  <article class="card" style="--h:'${s.h}',serif;--b:'Manrope',sans-serif;--tint:${s.tint};--hw:${s.hw};${s.ls?`--ls:${s.ls};`:''}${s.bw?`--bw:${s.bw};`:''}">
+    <div class="meta">
+      <span class="pair"><span class="num">${i}</span>${s.now?'<span class="now">образец</span>':''}</span>
+      <span class="mood">${s.mood}</span>
+    </div>
+    <div class="logo">штор<span>К</span>а</div>
+    <h2 class="title">Всё для ${s.it?'<em>уютного дома</em>':'уютного дома'} — от полотенца до окна под ключ</h2>
+    <p class="lead">Шьём шторы по вашим размерам, подбираем ткань по фото комнаты и привозим образцы на замер. Салон в ТЦ «Октябрьский», 2 этаж.</p>
+    <div class="btns">
+      <button class="btn btn--main">Подобрать шторы по фото</button>
+      <button class="btn btn--ghost">Записаться на замер</button>
+    </div>
+    <div class="row">
+      <span><b>★ 4,9</b>&nbsp; отзывы</span>
+      <span>Ежедневно 10:00–20:00</span>
+      <span class="price">Бархат «Бирюза» — от 2 490 ₽/м</span>
+    </div>
+    <div class="names">Заголовки: <code>${s.h}</code> · Текст: <code>Manrope</code></div>
+  </article>`).join('');
+document.querySelectorAll('.toggle button').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.toggle button').forEach(b => b.setAttribute('aria-pressed', b === btn));
+  document.body.classList.toggle('phone', btn.dataset.mode === 'phone');
+}));
+</script>
+</body>
+</html>

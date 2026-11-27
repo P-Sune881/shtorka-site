@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>шторКа — 5 вариантов первого экрана</title>
+<meta name="robots" content="noindex">
+<style>
+@font-face { font-family: 'Manrope'; font-weight: 200 800; font-display: swap; src: url('assets/fonts/manrope-cyrillic.woff2') format('woff2'); unicode-range: U+0400-045F; }
+@font-face { font-family: 'Manrope'; font-weight: 200 800; font-display: swap; src: url('assets/fonts/manrope-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2000-206F; }
+@font-face { font-family: 'Unbounded'; font-weight: 200 900; font-display: swap; src: url('assets/fonts/unbounded-cyrillic.woff2') format('woff2'); unicode-range: U+0400-045F; }
+@font-face { font-family: 'Unbounded'; font-weight: 200 900; font-display: swap; src: url('assets/fonts/unbounded-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+2000-206F; }
+
+:root {
+  --bg: #F8F7F4; --mint: #A9DFCF; --peach: #F9C9AB; --lav: #E3DAF7;
+  --accent: #2F7A76; --accent-deep: #143E3D; --dark: #1E2A29; --ink: #1A1F1E; --ink-2: #55615F;
+  --sw: 38, 58, 56;
+  --head: 'Unbounded', system-ui, sans-serif; --body: 'Manrope', system-ui, sans-serif;
+  --cw: clamp(70px, 27vh, 300px);           /* ширина стопки штор у края */
+  --ease: cubic-bezier(.22, .8, .24, 1);
+  --gl-bg: linear-gradient(180deg, rgba(255,255,255,.66), rgba(255,255,255,.3) 55%, rgba(255,255,255,.44)), rgba(47,122,118,.05);
+  --gl-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(var(--sw), .07), inset 0 -8px 14px -10px rgba(255,255,255,.95), 0 1px 2px rgba(var(--sw), .06), 0 8px 18px -12px rgba(var(--sw), .4);
+}
+* { box-sizing: border-box; margin: 0; }
+html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+body { font-family: var(--body); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+button { font: inherit; cursor: pointer; }
+svg.ico { width: 1em; height: 1em; flex: none; }
+
+/* ---------- общая сцена ---------- */
+.v { position: relative; height: 100vh; min-height: 720px; overflow: hidden; scroll-snap-align: start; isolation: isolate;
+  background:
+    radial-gradient(40% 50% at 12% 20%, rgba(169,223,207,.55), transparent 70%),
+    radial-gradient(40% 50% at 90% 80%, rgba(249,201,171,.5), transparent 70%),
+    radial-gradient(35% 40% at 70% 10%, rgba(227,218,247,.55), transparent 70%), var(--bg); }
+.v__glow { position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(42% 55% at 50% 38%, rgba(255,247,231,.95), rgba(255,247,231,0) 70%),
+              repeating-linear-gradient(100deg, rgba(255,255,255,0) 0 60px, rgba(255,255,255,.18) 60px 64px, rgba(255,255,255,0) 64px 130px); }
+.v__floor { position: absolute; left: 0; right: 0; bottom: 0; height: 72px; z-index: 1; pointer-events: none;
+  background: radial-gradient(55% 120% at 50% 0%, rgba(255,244,226,.9), transparent 75%), linear-gradient(180deg, rgba(236,228,214,.9), rgba(248,247,244,0)); }
+/* открытые шторы (снимок из assets/poster) — перед сценой */
+.v__frame { position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background: url('assets/poster/left.webp') left top / auto 100% no-repeat, url('assets/poster/right.webp') right top / auto 100% no-repeat, url('assets/poster/rod.webp') left top / auto 7.57% repeat-x; }
+/* имитация открытия: два полотна бархата расходятся */
+.v__drape { position: absolute; top: 0; bottom: 0; width: 51%; z-index: 5; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.18), transparent 12%, transparent 85%, rgba(0,0,0,.2)),
+    repeating-linear-gradient(90deg, #1B4E57 0, #2A6E78 22px, #3A808A 30px, #24626C 42px, #1B4E57 56px);
+  transition: transform 2.4s cubic-bezier(.6, .04, .2, 1); }
+.v__drape--l { left: 0; box-shadow: 12px 0 30px rgba(0,0,0,.25); }
+.v__drape--r { right: 0; box-shadow: -12px 0 30px rgba(0,0,0,.25); }
+.v.is-open .v__drape--l { transform: translateX(-102%); }
+.v.is-open .v__drape--r { transform: translateX(102%); }
+/* логотип и блоки появляются вслед за шторами */
+.logo-in { opacity: 0; transform: scale(.94); filter: blur(8px); transition: opacity 1.2s var(--ease) .9s, transform 1.4s var(--ease) .9s, filter 1.2s var(--ease) .9s; }
+.v.is-open .logo-in { opacity: 1; transform: none; filter: none; }
+.up { opacity: 0; transform: translateY(18px); transition: opacity .8s var(--ease) calc(1.7s + var(--d, 0s)), transform .8s var(--ease) calc(1.7s + var(--d, 0s)); }
+.v.is-open .up { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .v__drape { display: none; } .logo-in, .up { transition: none; opacity: 1; transform: none; filter: none; } }
+
+/* шапка */
+.hdr { position: absolute; top: 14px; left: max(12px, calc(var(--cw) * .45)); right: max(12px, calc(var(--cw) * .45)); z-index: 6;
+  display: flex; align-items: center; gap: 16px; height: 58px; padding: 0 8px 0 22px; border-radius: 999px;
+  background: rgba(255,255,255,.72); -webkit-backdrop-filter: blur(16px) saturate(170%); backdrop-filter: blur(16px) saturate(170%);
+  border: 1px solid rgba(255,255,255,.85); box-shadow: inset 0 1px 0 #fff, 0 10px 30px -18px rgba(var(--sw), .5); }
+.hdr__logo { font-family: var(--head); font-weight: 700; font-size: 1.15rem; letter-spacing: -.03em; }
+.hdr nav { display: flex; gap: 2px; margin-inline: auto; font-weight: 600; font-size: .86rem; }
+.hdr nav span { padding: 9px 11px; border-radius: 999px; }
+.hdr nav span:first-child { background: var(--gl-bg); box-shadow: var(--gl-shadow); }
+@media (max-width: 1100px) { .hdr nav { display: none; } .hdr .btn { margin-left: auto; } }
+
+/* логотип шторКа */
+.wm { font-family: var(--head); font-weight: 800; letter-spacing: -.05em; line-height: .9; color: var(--ink); white-space: nowrap; }
+.wm b { font-weight: inherit; color: var(--accent); }
+
+/* сцена между шторами */
+.stage { position: absolute; z-index: 2; left: calc(var(--cw) + 14px); right: calc(var(--cw) + 14px); top: 96px; bottom: 84px; }
+
+/* стекло, кнопки, плитки */
+.g { position: relative; border-radius: 22px; background: linear-gradient(160deg, rgba(255,255,255,.8), rgba(255,255,255,.52) 55%, rgba(255,255,255,.64));
+  -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid rgba(255,255,255,.8); box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 -18px 28px -24px rgba(255,255,255,.9), 0 22px 44px -30px rgba(var(--sw), .35); }
+.chip { display: inline-flex; align-items: center; gap: 6px; width: max-content; padding: 6px 12px; border-radius: 999px; font-size: .72rem; font-weight: 700;
+  background: var(--gl-bg); -webkit-backdrop-filter: blur(10px) saturate(180%); backdrop-filter: blur(10px) saturate(180%); border: 1px solid rgba(255,255,255,.75); box-shadow: var(--gl-shadow); }
+.chip svg { color: var(--accent); }
+.h1 { font-family: var(--head); font-weight: 700; letter-spacing: -.03em; line-height: 1.08; }
+.h1 em { font-style: normal; color: var(--accent); }
+.lead { color: var(--ink-2); line-height: 1.55; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 22px; border-radius: 999px; border: 0; font-weight: 700; font-size: .9rem; color: var(--ink); white-space: nowrap; }
+.btn--sm { height: 38px; padding: 0 16px; font-size: .8rem; }
+.btn--pearl { color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,.16);
+  background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.06) 50%, transparent 52%), radial-gradient(80% 70% at 50% 130%, rgba(170,232,222,.6), transparent 62%), linear-gradient(180deg, #3A8A84, #2F7A76 52%, #296E6A);
+  border: 1px solid rgba(255,255,255,.28); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -8px 14px -10px rgba(190,240,232,.85), 0 12px 26px -12px rgba(38,104,100,.55); }
+.btn--glass { background: var(--gl-bg); -webkit-backdrop-filter: blur(10px) saturate(180%); backdrop-filter: blur(10px) saturate(180%); border: 1px solid rgba(255,255,255,.75); box-shadow: var(--gl-shadow); }
+.btn--white { background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.64) 55%, rgba(255,255,255,.74)); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.9); box-shadow: inset 0 1px 0 #fff, 0 8px 18px -12px rgba(0,0,0,.4); }
+
+.t { position: relative; overflow: hidden; border-radius: 20px; min-height: 0; }
+.t--photo { background: repeating-linear-gradient(135deg, rgba(31,92,90,.10) 0 1px, transparent 1px 9px), linear-gradient(160deg, #D6ECE6, #E9F5F1 55%, #F6FBF9); border: 1px solid rgba(255,255,255,.8); }
+.t--peach { background: repeating-linear-gradient(135deg, rgba(196,108,64,.13) 0 1px, transparent 1px 9px), linear-gradient(160deg, #F7D7C4, #FBE8DC 55%, #FEF5EF); border: 1px solid rgba(255,255,255,.8); }
+.t--accent { color: #fff; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; padding: 18px;
+  background: radial-gradient(120% 90% at 0% 0%, rgba(255,255,255,.14), transparent 55%), var(--accent); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 22px 40px -26px rgba(20,62,60,.7); }
+.t__title { font-family: var(--head); font-weight: 700; font-size: 1.02rem; line-height: 1.2; letter-spacing: -.01em; max-width: 13ch; }
+.t--accent .btn { align-self: flex-start; }
+.lbl { position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 20px); padding: 5px 10px; border-radius: 999px; font-size: .66rem; font-weight: 600;
+  background: var(--gl-bg); -webkit-backdrop-filter: blur(10px) saturate(180%); backdrop-filter: blur(10px) saturate(180%); border: 1px solid rgba(255,255,255,.75); box-shadow: var(--gl-shadow); }
+.rate { position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 14px;
+  background: var(--gl-bg); -webkit-backdrop-filter: blur(10px) saturate(180%); backdrop-filter: blur(10px) saturate(180%); border: 1px solid rgba(255,255,255,.8); box-shadow: var(--gl-shadow); }
+.rate b { font-family: var(--head); font-size: 1.3rem; line-height: 1; }
+.rate small { font-size: .6rem; line-height: 1.25; color: var(--ink-2); font-weight: 600; }
+.rate .star { color: #E5A100; font-size: .9rem; }
+
+/* номер варианта */
+.tag { position: absolute; left: 14px; bottom: 14px; z-index: 7; padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: .78rem; color: #fff;
+  background: rgba(30,42,41,.82); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 8px 20px -10px rgba(0,0,0,.5); }
+
+/* ===== Вариант 1. Вывеска в окне ===== */
+.v1 .stage { display: grid; grid-template-rows: 1fr auto; gap: 24px; }
+.v1 .sign { align-self: center; text-align: center; }
+.v1 .wm { font-size: clamp(60px, 9.5vw, 156px); text-shadow: 0 30px 60px rgba(var(--sw), .14); }
+.v1 .sign p { margin-top: 14px; font-size: .78rem; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; color: var(--ink-2); }
+.v1 .row { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; height: clamp(250px, 34vh, 320px); }
+.v1 .txt { padding: 22px 26px; display: grid; align-content: center; gap: 12px; }
+.v1 .h1 { font-size: clamp(1.25rem, 1.2vw + .7rem, 1.75rem); }
+.v1 .lead { font-size: .88rem; }
+.v1 .mini { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1.15fr 1fr; gap: 12px; }
+.v1 .mini .t--photo { grid-column: 1 / -1; }
+
+/* ===== Вариант 2. Табличка на карнизе ===== */
+.v2 .stage { display: grid; grid-template-rows: auto 1fr auto; justify-items: center; text-align: center; gap: 18px; top: 50px; }
+.v2 .plaque { position: relative; margin-top: 54px; padding: 18px 36px 16px; border-radius: 26px; }
+.v2 .plaque::before, .v2 .plaque::after { content: ""; position: absolute; bottom: 100%; width: 1.5px; height: 70px; background: linear-gradient(#B0925F, #8A6E40); }
+.v2 .plaque::before { left: 22%; transform: rotate(-9deg); transform-origin: bottom; }
+.v2 .plaque::after { right: 22%; transform: rotate(9deg); transform-origin: bottom; }
+.v2 .wm { font-size: clamp(44px, 5vw, 76px); }
+.v2 .plaque small { display: block; margin-top: 8px; font-size: .66rem; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; color: var(--ink-2); }
+.v2 .mid { align-self: center; display: grid; justify-items: center; gap: 14px; max-width: 760px; }
+.v2 .h1 { font-size: clamp(1.5rem, 2vw + .6rem, 2.5rem); }
+.v2 .lead { font-size: .95rem; max-width: 46ch; }
+.v2 .row { width: 100%; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; height: clamp(130px, 18vh, 170px); text-align: left; }
+
+/* ===== Вариант 3. Логотип светом на стене ===== */
+.v3 .stage { display: grid; grid-template-rows: 1fr auto; gap: 20px; }
+.v3 .emb { align-self: center; text-align: center; }
+.v3 .wm { font-size: clamp(64px, 10vw, 176px); color: rgba(255,255,255,.62); letter-spacing: -.06em;
+  text-shadow: 0 1px 0 #fff, 0 -1.5px 0 rgba(var(--sw), .16), 0 2px 1px rgba(var(--sw), .06), 0 26px 50px rgba(var(--sw), .12); }
+.v3 .wm b { color: rgba(47,122,118,.55); }
+.v3 .emb p { margin-top: 10px; font-size: .78rem; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-2); }
+.v3 .shelf { display: grid; grid-template-columns: 2.1fr 1fr 1fr 1fr; gap: 12px; padding: 12px; height: clamp(230px, 30vh, 270px); border-radius: 28px; }
+.v3 .txt { padding: 10px 14px; display: grid; align-content: center; gap: 10px; }
+.v3 .h1 { font-size: clamp(1rem, .7vw + .65rem, 1.35rem); }
+.v3 .btns { flex-wrap: nowrap; }
+.v3 .lead { font-size: .82rem; }
+.v3 .btn { height: 40px; padding: 0 14px; font-size: .78rem; }
+.v3 .t--accent .btn { height: 36px; }
+
+/* ===== Вариант 4. Монограмма ===== */
+.v4 .stage { display: grid; grid-template-rows: auto 1fr; gap: 26px; }
+.v4 .brand { justify-self: center; display: flex; align-items: center; gap: 18px; margin-top: 18px; }
+.v4 .medal { display: grid; place-items: center; width: clamp(72px, 7vw, 104px); aspect-ratio: 1; border-radius: 50%;
+  font-family: var(--head); font-weight: 800; font-size: clamp(34px, 3.4vw, 52px); color: var(--accent); }
+.v4 .medal::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; border: 1px solid rgba(47,122,118,.25); }
+.v4 .wm { font-size: clamp(48px, 5.6vw, 92px); }
+.v4 .brand small { display: block; margin-top: 8px; font-size: .68rem; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-2); }
+.v4 .row { align-self: center; display: grid; grid-template-columns: 1fr 1.05fr; gap: 14px; height: clamp(320px, 46vh, 420px); }
+.v4 .txt { padding: 26px 30px; display: grid; align-content: center; gap: 14px; }
+.v4 .h1 { font-size: clamp(1.35rem, 1.4vw + .7rem, 2rem); }
+.v4 .lead { font-size: .9rem; }
+.v4 .bento { display: grid; grid-template-columns: 1.2fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; }
+.v4 .bento .t--photo { grid-row: 1 / -1; }
+
+/* ===== Вариант 5. Журнальный ===== */
+.v5 .stage { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(20px, 3vw, 48px); align-items: center; }
+.v5 .col { display: grid; gap: 16px; padding-left: 12px; }
+.v5 .wm { font-size: clamp(56px, 7.4vw, 128px); }
+.v5 .rule { display: flex; align-items: center; gap: 12px; font-size: .7rem; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: var(--ink-2); }
+.v5 .rule::before { content: ""; width: 44px; height: 1.5px; background: var(--accent); }
+.v5 .h1 { font-size: clamp(1.2rem, 1.1vw + .7rem, 1.7rem); font-weight: 600; max-width: 22ch; }
+.v5 .lead { font-size: .92rem; max-width: 42ch; }
+.v5 .stack { display: grid; gap: 12px; }
+.v5 .stack > * { height: clamp(120px, 17vh, 160px); }
+.v5 .stack > :nth-child(2) { margin-left: 12%; }
+.v5 .stack > :nth-child(3) { margin-right: 12%; }
+
+/* узкие экраны: всё в колонку */
+@media (max-width: 860px) {
+  :root { --cw: 34px; }
+  .stage { overflow: auto; }
+  .v1 .row, .v2 .row, .v3 .shelf, .v4 .row, .v5 .stage { grid-template-columns: 1fr; height: auto; }
+  .v1 .mini, .v4 .bento { height: 260px; }
+  .v2 .row > *, .v3 .shelf > .t, .v5 .stack > * { height: 120px; }
+  .v5 .stack > * { margin: 0 !important; }
+}
+
+/* панель выбора варианта */
+.bar { position: fixed; left: 50%; bottom: 14px; translate: -50% 0; z-index: 50; display: flex; align-items: center; gap: 4px; padding: 5px; border-radius: 999px;
+  background: rgba(255,255,255,.75); -webkit-backdrop-filter: blur(16px) saturate(170%); backdrop-filter: blur(16px) saturate(170%);
+  border: 1px solid rgba(255,255,255,.9); box-shadow: inset 0 1px 0 #fff, 0 14px 30px -14px rgba(var(--sw), .55); max-width: calc(100vw - 20px); overflow-x: auto; }
+.bar a, .bar button { flex: none; display: inline-flex; align-items: center; height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--ink); font-weight: 700; font-size: .8rem; text-decoration: none; white-space: nowrap; }
+.bar a.on { color: #fff; background: linear-gradient(180deg, rgba(255,255,255,.16), transparent 55%), rgba(30,42,41,.9); }
+.bar button { color: var(--accent); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="arr" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+</svg>
+
+<!-- ======================= ВАРИАНТ 1 ======================= -->
+<section class="v v1" id="v1">
+  <div class="v__glow"></div><div class="v__floor"></div>
+  <div class="stage">
+    <div class="sign logo-in">
+      <div class="wm">штор<b>К</b>а</div>
+      <p>домашний текстиль · Иркутск</p>
+    </div>
+    <div class="row">
+      <div class="txt g up">
+        <span class="chip"><svg class="ico"><use href="#pin"/></svg>ТЦ «Октябрьский» · 2 этаж</span>
+        <h1 class="h1">Всё для уютного дома — <em>от&nbsp;полотенца до&nbsp;окна</em> под&nbsp;ключ</h1>
+        <p class="lead">Бельё, полотенца, одеяла и шторы по вашим размерам. Пришлите фото комнаты — предложим комплект и цену.</p>
+        <div class="btns"><span class="btn btn--pearl">Подобрать шторы по фото<svg class="ico"><use href="#arr"/></svg></span><span class="btn btn--glass">Связаться</span></div>
+      </div>
+      <div class="mini">
+        <div class="t t--photo up" style="--d:.1s"><span class="rate"><b>4,9</b><span class="star">★</span><small>оценка в 2ГИС<br>и Яндексе</small></span><span class="lbl">Фото: светлая гостиная со шторами</span></div>
+        <div class="t t--accent up" style="--d:.2s"><p class="t__title">Замер с образцами тканей</p><span class="btn btn--white btn--sm">Записаться</span></div>
+        <div class="t t--peach up" style="--d:.3s"><span class="lbl">Бельё из тенселя</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="v__frame"></div><div class="v__drape v__drape--l"></div><div class="v__drape v__drape--r"></div>
+  <header class="hdr"><span class="hdr__logo">штор<b style="color:var(--accent)">К</b>а</span><nav><span>Хиты</span><span>Примерочная</span><span>Как мы работаем</span><span>Отзывы</span><span>Подарки</span><span>Контакты</span></nav><span class="btn btn--pearl btn--sm">Подобрать шторы по фото</span></header>
+  <span class="tag">1 · Вывеска в окне</span>
+</section>
+
+<!-- ======================= ВАРИАНТ 2 ======================= -->
+<section class="v v2" id="v2">
+  <div class="v__glow"></div><div class="v__floor"></div>
+  <div class="stage">
+    <div class="plaque g logo-in">
+      <div class="wm">штор<b>К</b>а</div>
+      <small>салон домашнего текстиля</small>
+    </div>
+    <div class="mid">
+      <span class="chip up"><svg class="ico"><use href="#pin"/></svg>ТЦ «Октябрьский» · 2 этаж</span>
+      <h1 class="h1 up" style="--d:.05s">Всё для уютного дома — <em>от&nbsp;полотенца до&nbsp;окна</em> под&nbsp;ключ</h1>
+      <p class="lead up" style="--d:.1s">Бельё, полотенца, одеяла и шторы по вашим размерам. Пришлите фото комнаты — предложим комплект и цену.</p>
+      <div class="btns up" style="--d:.15s"><span class="btn btn--pearl">Подобрать шторы по фото<svg class="ico"><use href="#arr"/></svg></span><span class="btn btn--glass">Связаться</span></div>
+    </div>
+    <div class="row">
+      <div class="t t--photo up" style="--d:.2s"><span class="rate"><b>4,9</b><span class="star">★</span><small>оценка в 2ГИС<br>и Яндексе</small></span><span class="lbl">Фото: светлая гостиная</span></div>
+      <div class="t t--accent up" style="--d:.28s"><p class="t__title">Замер с образцами тканей</p><span class="btn btn--white btn--sm">Записаться</span></div>
+      <div class="t t--peach up" style="--d:.36s"><span class="lbl">Бельё из тенселя</span></div>
+    </div>
+  </div>
+  <div class="v__frame"></div><div class="v__drape v__drape--l"></div><div class="v__drape v__drape--r"></div>
+  <header class="hdr"><span class="hdr__logo">штор<b style="color:var(--accent)">К</b>а</span><nav><span>Хиты</span><span>Примерочная</span><span>Как мы работаем</span><span>Отзывы</span><span>Подарки</span><span>Контакты</span></nav><span class="btn btn--pearl btn--sm">Подобрать шторы по фото</span></header>
+  <span class="tag">2 · Табличка на карнизе</span>
+</section>
+
+<!-- ======================= ВАРИАНТ 3 ======================= -->
+<section class="v v3" id="v3">
+  <div class="v__glow"></div><div class="v__floor"></div>
+  <div class="stage">
+    <div class="emb logo-in">
+      <div class="wm">штор<b>К</b>а</div>
+      <p>от полотенца до окна</p>
+    </div>
+    <div class="shelf g up">
+      <div class="txt">
+        <span class="chip"><svg class="ico"><use href="#pin"/></svg>ТЦ «Октябрьский» · 2 этаж</span>
+        <h1 class="h1">Всё для уютного дома — <em>от&nbsp;полотенца до&nbsp;окна</em> под&nbsp;ключ</h1>
+        <div class="btns"><span class="btn btn--pearl">Подобрать шторы по фото<svg class="ico"><use href="#arr"/></svg></span><span class="btn btn--glass">Связаться</span></div>
+      </div>
+      <div class="t t--photo"><span class="rate"><b>4,9</b><span class="star">★</span></span><span class="lbl">Фото: гостиная</span></div>
+      <div class="t t--accent"><p class="t__title">Замер с образцами тканей</p><span class="btn btn--white btn--sm">Записаться</span></div>
+      <div class="t t--peach"><span class="lbl">Бельё из тенселя</span></div>
+    </div>
+  </div>
+  <div class="v__frame"></div><div class="v__drape v__drape--l"></div><div class="v__drape v__drape--r"></div>
+  <header class="hdr"><span class="hdr__logo">штор<b style="color:var(--accent)">К</b>а</span><nav><span>Хиты</span><span>Примерочная</span><span>Как мы работаем</span><span>Отзывы</span><span>Подарки</span><span>Контакты</span></nav><span class="btn btn--pearl btn--sm">Подобрать шторы по фото</span></header>
+  <span class="tag">3 · Логотип светом на стене</span>
+</section>
+
+<!-- ======================= ВАРИАНТ 4 ======================= -->
+<section class="v v4" id="v4">
+  <div class="v__glow"></div><div class="v__floor"></div>
+  <div class="stage">
+    <div class="brand logo-in">
+      <span class="medal g">К</span>
+      <div><div class="wm">штор<b>К</b>а</div><small>шторы · бельё · текстиль</small></div>
+    </div>
+    <div class="row">
+      <div class="txt g up">
+        <span class="chip"><svg class="ico"><use href="#pin"/></svg>ТЦ «Октябрьский» · 2 этаж</span>
+        <h1 class="h1">Всё для уютного дома — <em>от&nbsp;полотенца до&nbsp;окна</em> под&nbsp;ключ</h1>
+        <p class="lead">Бельё, полотенца, одеяла и шторы по вашим размерам. Пришлите фото комнаты — предложим комплект и цену.</p>
+        <div class="btns"><span class="btn btn--pearl">Подобрать шторы по фото<svg class="ico"><use href="#arr"/></svg></span><span class="btn btn--glass">Связаться</span></div>
+      </div>
+      <div class="bento">
+        <div class="t t--photo up" style="--d:.1s"><span class="rate"><b>4,9</b><span class="star">★</span><small>оценка в 2ГИС<br>и Яндексе</small></span><span class="lbl">Фото: светлая гостиная со шторами</span></div>
+        <div class="t t--accent up" style="--d:.2s"><p class="t__title">Замер с образцами тканей</p><span class="btn btn--white btn--sm">Записаться</span></div>
+        <div class="t t--peach up" style="--d:.3s"><span class="lbl">Бельё из тенселя</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="v__frame"></div><div class="v__drape v__drape--l"></div><div class="v__drape v__drape--r"></div>
+  <header class="hdr"><span class="hdr__logo">штор<b style="color:var(--accent)">К</b>а</span><nav><span>Хиты</span><span>Примерочная</span><span>Как мы работаем</span><span>Отзывы</span><span>Подарки</span><span>Контакты</span></nav><span class="btn btn--pearl btn--sm">Подобрать шторы по фото</span></header>
+  <span class="tag">4 · Монограмма</span>
+</section>
+
+<!-- ======================= ВАРИАНТ 5 ======================= -->
+<section class="v v5" id="v5">
+  <div class="v__glow"></div><div class="v__floor"></div>
+  <div class="stage">
+    <div class="col">
+      <div class="wm logo-in">штор<b>К</b>а</div>
+      <p class="rule up">салон текстиля · ТЦ «Октябрьский», 2 этаж</p>
+      <h1 class="h1 up" style="--d:.05s">Всё для уютного дома — <em>от&nbsp;полотенца до&nbsp;окна</em> под&nbsp;ключ</h1>
+      <p class="lead up" style="--d:.1s">Бельё, полотенца, одеяла и шторы по вашим размерам. Пришлите фото комнаты — предложим комплект и цену.</p>
+      <div class="btns up" style="--d:.15s"><span class="btn btn--pearl">Подобрать шторы по фото<svg class="ico"><use href="#arr"/></svg></span><span class="btn btn--glass">Связаться</span></div>
+    </div>
+    <div class="stack">
+      <div class="t t--photo up" style="--d:.2s"><span class="rate"><b>4,9</b><span class="star">★</span><small>оценка в 2ГИС<br>и Яндексе</small></span><span class="lbl">Фото: светлая гостиная</span></div>
+      <div class="t t--accent up" style="--d:.28s"><p class="t__title">Замер с образцами тканей</p><span class="btn btn--white btn--sm">Записаться</span></div>
+      <div class="t t--peach up" style="--d:.36s"><span class="lbl">Бельё из тенселя по размерам</span></div>
+    </div>
+  </div>
+  <div class="v__frame"></div><div class="v__drape v__drape--l"></div><div class="v__drape v__drape--r"></div>
+  <header class="hdr"><span class="hdr__logo">штор<b style="color:var(--accent)">К</b>а</span><nav><span>Хиты</span><span>Примерочная</span><span>Как мы работаем</span><span>Отзывы</span><span>Подарки</span><span>Контакты</span></nav><span class="btn btn--pearl btn--sm">Подобрать шторы по фото</span></header>
+  <span class="tag">5 · Журнальный</span>
+</section>
+
+<nav class="bar" aria-label="Варианты">
+  <a href="#v1" class="on">1 Вывеска</a><a href="#v2">2 Табличка</a><a href="#v3">3 Свет на стене</a><a href="#v4">4 Монограмма</a><a href="#v5">5 Журнал</a>
+  <button type="button" id="replay">↻ Открыть шторы ещё раз</button>
+</nav>
+
+<script>
+const secs = [...document.querySelectorAll('.v')];
+const links = [...document.querySelectorAll('.bar a')];
+let current = secs[0];
+const open = (s) => { s.classList.remove('is-open'); void s.offsetWidth; setTimeout(() => s.classList.add('is-open'), 350); };
+// какой вариант сейчас на экране: тот, чья середина ближе к центру окна
+const check = () => {
+  const mid = innerHeight / 2;
+  const s = secs.reduce((best, x) => {
+    const r = x.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - mid);
+    return d < best.d ? { x, d } : best;
+  }, { x: secs[0], d: Infinity }).x;
+  if (s !== current || !s.dataset.played) {
+    current = s;
+    links.forEach((a) => a.classList.toggle('on', a.hash === '#' + s.id));
+    if (!s.dataset.played) { s.dataset.played = 1; open(s); }
+  }
+};
+let tick = 0;
+addEventListener('scroll', () => { clearTimeout(tick); tick = setTimeout(check, 120); }, { passive: true });
+addEventListener('load', check);
+check();
+document.getElementById('replay').addEventListener('click', () => open(current));
+</script>
+</body>
+</html>

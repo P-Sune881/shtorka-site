@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ШторКа — подпись студии в подвале</title>
+<style>
+  @font-face { font-family:'Manrope'; font-weight:200 800; src:url('assets/fonts/manrope-cyrillic.woff2') format('woff2'); unicode-range:U+0400-045F; }
+  @font-face { font-family:'Manrope'; font-weight:200 800; src:url('assets/fonts/manrope-latin.woff2') format('woff2'); unicode-range:U+0000-00FF,U+2000-206F; }
+  @font-face { font-family:'Spectral'; font-weight:700; src:url('assets/fonts/spectral-cyrillic-700.woff2') format('woff2'); unicode-range:U+0400-045F; }
+  @font-face { font-family:'Spectral'; font-weight:700; src:url('assets/fonts/spectral-latin-700.woff2') format('woff2'); unicode-range:U+0000-00FF; }
+  :root { --bg:#F8F7F4; --ink:#1A1F1E; --ink-2:#4E5755; --accent:#2F7A76; --dark:#1E2A29; --mint:#A9DFCF; --peach:#F9C9AB;
+          --ease:cubic-bezier(.22,1,.36,1); }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--ink); font-family:'Manrope',system-ui,sans-serif; padding:32px 20px 80px; }
+  .wrap { max-width:1100px; margin:0 auto; }
+  h1 { font:700 clamp(1.5rem,2.6vw,2.2rem)/1.15 'Spectral',Georgia,serif; }
+  .intro { color:var(--ink-2); margin:8px 0 28px; max-width:70ch; line-height:1.55; }
+  .v { margin-bottom:34px; }
+  .v__head { display:flex; align-items:baseline; gap:12px; margin-bottom:10px; }
+  .v__num { display:inline-grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--dark); color:#fff; font-weight:700; font-size:.85rem; flex:none; }
+  .v__title { font-weight:700; }
+  .v__note { color:var(--ink-2); font-size:.9rem; }
+  /* имитация низа подвала сайта */
+  .fb { display:flex; flex-wrap:wrap; align-items:center; gap:8px 24px; padding:18px 8px 0; font-size:.85rem; color:var(--ink-2); }
+  .fb a { color:var(--ink-2); }
+  .fb .push { margin-left:auto; }
+  .card { background:var(--dark); color:#fff; border-radius:24px; padding:22px 26px; }
+  .logo-o { font-weight:800; letter-spacing:-.02em; }
+  .logo-o i { font-style:normal; color:var(--accent); }
+  .card .logo-o i { color:var(--mint); }
+
+  /* 1. Скромная строка */
+  .c1 { text-decoration:none; color:var(--ink-2); }
+  .c1 b { color:var(--ink); background:linear-gradient(currentColor,currentColor) 0 100%/0 1.5px no-repeat; transition:background-size .4s var(--ease); }
+  .c1:hover b { background-size:100% 1.5px; }
+
+  /* 2. Стеклянная таблетка «Сделано в» */
+  .c2 { display:inline-flex; align-items:center; gap:8px; padding:7px 14px 7px 8px; border-radius:999px; text-decoration:none; color:var(--ink);
+        background:rgba(255,255,255,.7); box-shadow:inset 0 0 0 1px rgba(26,31,30,.08),0 4px 14px rgba(20,62,61,.06); transition:box-shadow .45s var(--ease),transform .2s var(--ease); }
+  .c2__mark { display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:var(--dark); color:var(--mint); font-weight:800; font-size:.8rem; }
+  .c2 small { color:var(--ink-2); font-size:.78rem; }
+  .c2 svg { width:14px; height:14px; transition:transform .35s var(--ease); }
+  .c2:hover { box-shadow:inset 0 0 0 1.5px var(--accent),0 0 18px rgba(47,122,118,.35); }
+  .c2:hover svg { transform:translate(2px,-2px); }
+
+  /* 3. Значок, который раскрывается при наведении */
+  .c3 { display:inline-flex; align-items:center; height:34px; border-radius:999px; text-decoration:none; color:#fff; background:var(--dark); overflow:hidden; }
+  .c3__mark { display:grid; place-items:center; width:34px; height:34px; flex:none; color:var(--mint); font-weight:800; }
+  .c3__txt { max-width:0; white-space:nowrap; font-size:.8rem; opacity:0; transition:max-width .5s var(--ease),opacity .3s var(--ease),padding .5s var(--ease); }
+  .c3:hover .c3__txt, .c3:focus-visible .c3__txt { max-width:220px; opacity:1; padding-right:14px; }
+
+  /* 4. Подпись «буквы откликаются» — волна по буквам */
+  .c4 { text-decoration:none; color:var(--ink-2); display:inline-flex; gap:6px; align-items:baseline; }
+  .c4 .w { display:inline-flex; font-weight:800; color:var(--ink); }
+  .c4 .w span { display:inline-block; transition:transform .45s var(--ease),color .45s var(--ease); transition-delay:calc(var(--i)*35ms); }
+  .c4:hover .w span { transform:translateY(-4px); color:var(--accent); }
+
+  /* 5. Блок внутри тёмного подвала с призывом */
+  .c5 { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px 20px; }
+  .c5 p { color:#A9B8B5; font-size:.9rem; }
+  .c5 p b { color:#fff; }
+  .c5 a { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border-radius:999px; text-decoration:none; color:#fff; font-weight:700; font-size:.85rem;
+          box-shadow:inset 0 0 0 1px rgba(255,255,255,.18); transition:box-shadow .45s var(--ease); }
+  .c5 a:hover { box-shadow:inset 0 0 0 1.5px var(--mint),0 0 18px rgba(169,223,207,.4); }
+
+  /* 6. Строка с пульсирующим сердцем */
+  .c6 { text-decoration:none; color:var(--ink-2); display:inline-flex; align-items:center; gap:6px; }
+  .c6 .h { color:#E26D5A; display:inline-block; animation:beat 1.6s ease-in-out infinite; }
+  .c6 b { color:var(--ink); }
+  @keyframes beat { 0%,60%,100% { transform:scale(1); } 15% { transform:scale(1.25); } 30% { transform:scale(.95); } 45% { transform:scale(1.15); } }
+
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Подпись студии в подвале — 6 вариантов</h1>
+  <p class="intro">Каждый вариант показан в той строке, где он будет стоять на сайте (под тёмной карточкой контактов, рядом с © и ссылками на политику). Наведи мышь — у всех есть анимация. Вместо слова «Отклик» встанет ваш настоящий логотип, ссылка ведёт на otklk.ru.</p>
+
+  <section class="v">
+    <div class="v__head"><span class="v__num">1</span><span class="v__title">Скромная строка</span><span class="v__note">— почти незаметно, клиенту точно не помешает</span></div>
+    <div class="fb"><span>© 2026 ШторКа, Иркутск</span><a href="#">Политика обработки ПДн</a><a href="#">Согласие на обработку ПДн</a>
+      <a class="c1 push" href="https://otklk.ru" target="_blank" rel="noopener">Сайт разработан в&nbsp;<b>студии «Отклик»</b></a></div>
+  </section>
+
+  <section class="v">
+    <div class="v__head"><span class="v__num">2</span><span class="v__title">Стеклянная таблетка «Сделано в»</span><span class="v__note">— в стиле кнопок сайта, светится при наведении</span></div>
+    <div class="fb"><span>© 2026 ШторКа, Иркутск</span><a href="#">Политика обработки ПДн</a><a href="#">Согласие на обработку ПДн</a>
+      <a class="c2 push" href="https://otklk.ru" target="_blank" rel="noopener"><span class="c2__mark">О</span><small>Сделано в</small><span class="logo-o">Отклик<i>.</i></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17 17 7M8 7h9v9"/></svg></a></div>
+  </section>
+
+  <section class="v">
+    <div class="v__head"><span class="v__num">3</span><span class="v__title">Значок раскрывается</span><span class="v__note">— виден только кружок с буквой, текст выезжает при наведении</span></div>
+    <div class="fb"><span>© 2026 ШторКа, Иркутск</span><a href="#">Политика обработки ПДн</a><a href="#">Согласие на обработку ПДн</a>
+      <a class="c3 push" href="https://otklk.ru" target="_blank" rel="noopener" aria-label="Сайт разработан в студии Отклик"><span class="c3__mark">О</span><span class="c3__txt">Сайт сделали в «Отклике» →</span></a></div>
+  </section>
+
+  <section class="v">
+    <div class="v__head"><span class="v__num">4</span><span class="v__title">Буквы «откликаются»</span><span class="v__note">— обыгрывает название студии: буквы по очереди подпрыгивают</span></div>
+    <div class="fb"><span>© 2026 ШторКа, Иркутск</span><a href="#">Политика обработки ПДн</a><a href="#">Согласие на обработку ПДн</a>
+      <a class="c4 push" href="https://otklk.ru" target="_blank" rel="noopener">Разработка — <span class="w" aria-label="Отклик"><span style="--i:0">О</span><span style="--i:1">т</span><span style="--i:2">к</span><span style="--i:3">л</span><span style="--i:4">и</span><span style="--i:5">к</span></span></a></div>
+  </section>
+
+  <section class="v">
+    <div class="v__head"><span class="v__num">5</span><span class="v__title">Строка внутри тёмного подвала с призывом</span><span class="v__note">— заметнее всех и приводит заявки, но нужно согласовать с салоном</span></div>
+    <div class="card c5"><p>Сайт разработан студией <b class="logo-o">Отклик<i>.</i></b> — сайты для бизнеса в Иркутске</p>
+      <a href="https://otklk.ru" target="_blank" rel="noopener">Хочу такой же сайт →</a></div>
+  </section>
+
+  <section class="v">
+    <div class="v__head"><span class="v__num">6</span><span class="v__title">С сердечком</span><span class="v__note">— тёплый вариант, сердце мягко пульсирует</span></div>
+    <div class="fb"><span>© 2026 ШторКа, Иркутск</span><a href="#">Политика обработки ПДн</a><a href="#">Согласие на обработку ПДн</a>
+      <a class="c6 push" href="https://otklk.ru" target="_blank" rel="noopener">Сделано с <span class="h" aria-label="любовью">♥</span> в Иркутске · <b>Отклик</b></a></div>
+  </section>
+</div>
+</body>
+</html>

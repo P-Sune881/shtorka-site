@@ -1,5 +1,5 @@
 /* =========================================================
-   шторКа — логика лендинга (чистый JS, без зависимостей)
+   ШторКа — логика лендинга (чистый JS, без зависимостей)
    Блоки:
    0. CONFIG — контакты, адреса API (всё, что меняется, — здесь)
    1. ДАННЫЕ — товары, ткани, бизнес, кейсы, отзывы, подарки
@@ -21,30 +21,46 @@
 /* ---------- 0. CONFIG ---------- */
 const CONFIG = {
   phones: [
-    { raw: '+79849268771', label: '+7 984 926-87-71' }, // ПРОВЕРИТЬ
-    { raw: '+79843582582', label: '+7 984 358-25-82' }, // ПРОВЕРИТЬ
+    { raw: '+73952966771', label: '+7 (3952) 96-67-71', note: 'единый номер, пн–вс 9:00–20:00' },
+    { raw: '+79246200022', label: '+7 924 620-00-22' },
+    { raw: '+79149266771', label: '+7 914 926-67-71', note: 'WhatsApp, Telegram, MAX' },
   ],
-  whatsapp: '79849268771',                // номер для wa.me без «+»
-  telegram: 'shtorka_irk',                // ЗАМЕНИТЬ: username Telegram без «@»
-  max: 'https://max.ru/',                 // ЗАМЕНИТЬ: ссылка на профиль/чат в MAX
+  whatsapp: '79149266771',                // номер для wa.me без «+» (к нему привязаны WhatsApp, Telegram и MAX)
+  telegram: 'annashtorka',                // username Telegram без «@»
+  uds: 'https://shtorka38.uds.app/c/join?ref=cvdd3423', // приглашение в UDS салона (24.11); QR — assets/uds-qr.svg
+  max: 'https://max.ru/u/f9LHodD0cOJmiBTZLYf_9ouiZjMFZZjEdf7Y4kJ_MbtwIXwkbE6iPU36UGU', // профиль Анны в MAX (из QR, 24.11); пустая строка скрывает кнопку MAX
   maps: {
-    yandex: 'https://yandex.ru/maps/63/irkutsk/?text=%D1%88%D1%82%D0%BE%D1%80%D0%9A%D0%B0%20%D0%A4.%20%D0%AD%D0%BD%D0%B3%D0%B5%D0%BB%D1%8C%D1%81%D0%B0%2034', // ЗАМЕНИТЬ на карточку организации
-    gis: 'https://2gis.ru/irkutsk/search/%D1%88%D1%82%D0%BE%D1%80%D0%9A%D0%B0',       // ЗАМЕНИТЬ на карточку организации
+    yandex: 'https://yandex.ru/maps/org/shtorka/1105311263/',
+    gis: 'https://2gis.ru/irkutsk/firm/70000001036045798',
   },
   api: {
     // Серверный прокси (например, Yandex Cloud Function). Ключи нейросети и токен бота — ТОЛЬКО на сервере.
-    refine: '/api/refine',          // POST → { image: url|dataURL }
+    refine: 'api/tryon.php',        // ИИ-примерка: POST → { ok, image: url } (локально — tools/serve.ps1, на хостинге — site/api/tryon.php)
     detectWindow: '/api/detect-window', // POST → { corners: [[x,y]×4] } в долях 0..1
     lead: '/api/lead',              // POST → { ok: true }
   },
-  demoMode: true,          // true — сервера ещё нет: формы и нейросеть работают как имитация
+  demoMode: true,          // true — сервера ещё нет: формы работают как имитация
+  aiLive: true,            // true — «Сделать реалистично» идёт в настоящую нейросеть (Polza.ai, ~3 ₽ за раз); false — имитация
   demoPhoto: '',           // путь к демо-фото комнаты для примерочной, например 'assets/demo-room.jpg'
-  showSampleMarks: true,   // метка «образец» на отзывах-заглушках; выключить, когда вставите реальные отзывы
-  toastDelay: 1500,        // через сколько мс после открытия штор показать «Дарим 1000 ₽»
+  showSampleMarks: false,       // отзывы с карт — настоящие
+  showMessageSampleMarks: true, // «Написали нам лично» — пока образцы; выключить, когда вставим настоящие сообщения   // метка «образец» на отзывах-заглушках; выключить, когда вставите реальные отзывы
+  toastDelay: 1200,        // через сколько мс после полной остановки штор показать «Дарим 1000 ₽»
 };
 
 /* ---------- 1. ДАННЫЕ ---------- */
 // Хиты салона. Меняйте свободно: cat — curtains | bedding | plaids | kids; badge — hit | stock | kids | new
+// Блок «Выбрать домашний текстиль»: 6–8 категорий. Настоящее фото — поле img: 'assets/textile/имя.webp' (≈600×750, до 60 КБ).
+const TEXTILE = [
+  { name: 'Постельное бельё',  photo: 'Фото: комплект постельного белья на кровати' },
+  { name: 'Одеяла',            photo: 'Фото: сложенные одеяла' },
+  { name: 'Подушки',           photo: 'Фото: подушки разных размеров' },
+  { name: 'Пледы',             photo: 'Фото: плед на кресле' },
+  { name: 'Покрывала',         photo: 'Фото: покрывало на заправленной кровати' },
+  { name: 'Полотенца',         photo: 'Фото: стопка махровых полотенец' },
+  { name: 'Детский текстиль',  photo: 'Фото: детский комплект в кроватке' },
+  { name: 'Наматрасники',      photo: 'Фото: наматрасник на матрасе' }, // уточнить у клиента, есть ли в ассортименте
+];
+
 const PRODUCTS = [
   { cat: 'curtains', name: 'Портьеры блэкаут «Графит»', price: 4900, unit: 'за пару', badge: 'hit', photo: 'Фото: портьеры блэкаут графит в спальне', desc: 'Плотная ткань не пропускает свет — для спален и детских. Сошьём по вашим размерам за 5–7 дней.' },
   { cat: 'curtains', name: 'Тюль «Вуаль молочная»', price: 1900, unit: 'за пог. м', badge: 'stock', photo: 'Фото: молочный тюль на окне днём', desc: 'Лёгкая вуаль мягко рассеивает солнце и не утяжеляет окно. Хорошо сочетается с любыми портьерами.' },
@@ -82,62 +98,71 @@ const FABRICS = [
 const TULLE_COLOR = '#FBFAF6';
 
 // Для бизнеса — данные прайс-окна. ВСЕ ЦЕНЫ И ТЕКСТЫ — ЗАГЛУШКИ, уточнить у клиента
+// Для бизнеса: по нажатию — кейс (описание + фото). ПОКА ЗАГЛУШКИ: заменить на реальные объекты и фото салона.
 const BUSINESS = {
   cafe: {
-    tag: 'Кафе и рестораны', title: 'Текстиль для кафе', price: 'от 25 000 ₽', term: 'от 10 дней',
-    desc: 'Шторы, скатерти и салфетки в стиле заведения. Подбираем ткани, которые выдерживают частые стирки и не впитывают запахи.',
-    items: [
-      { name: 'Шторы для зала', price: 'от 4 500 ₽/окно', text: 'Огнестойкие и износостойкие ткани' },
-      { name: 'Скатерти и дорожки', price: 'от 1 200 ₽/шт.', text: 'Пропитка от пятен' },
-      { name: 'Салфетки', price: 'от 250 ₽/шт.', text: 'Хлопок и смесовые ткани' },
-    ],
-    includes: ['Выезд и замер', 'Подбор тканей под интерйер', 'Пошив партии', 'Навеска и отпаривание'],
-    examples: ['Кофейня на 6 окон — римские шторы и салфетки в цвет логотипа', 'Ресторан — портьеры для VIP-зала с затемнением'],
+    tag: 'Кафе и рестораны', title: 'Кофейня: римские шторы и салфетки в цвет логотипа',
+    desc: 'Небольшая кофейня на шесть окон: солнце слепило гостей у витрины, а интерьеру не хватало фирменного цвета. Сшили римские шторы из плотного льна и салфетки в тон логотипа.',
+    did: ['6 римских штор точно по размерам окон', 'Салфетки и дорожки на столы в фирменном цвете', 'Навеска рано утром — кофейня не закрывалась'],
+    photos: ['Фото: зал кофейни с римскими шторами', 'Фото: салфетки в цвет логотипа', 'Фото: витрина днём'],
   },
   office: {
-    tag: 'Офисы', title: 'Шторы для офиса', price: 'от 18 000 ₽', term: 'от 7 дней',
-    desc: 'Рулонные и римские шторы, которые защищают мониторы от бликов и выглядят аккуратно. Работаем по договору, с закрывающими документами.',
-    items: [
-      { name: 'Рулонные шторы', price: 'от 2 900 ₽/шт.', text: 'Блэкаут и «день-ночь»' },
-      { name: 'Римские шторы', price: 'от 3 800 ₽/шт.', text: 'Для переговорных и кабинетов' },
-      { name: 'Портьеры для переговорной', price: 'от 6 000 ₽/окно', text: 'Полное затемнение для презентаций' },
-    ],
-    includes: ['Замер всех помещений', 'Смета и договор', 'Пошив и монтаж в нерабочее время', 'Гарантия на работы'],
-    examples: ['IT-офис: 24 рулонные шторы за выходные', 'Переговорная: блэкаут на моторизованном карнизе'],
+    tag: 'Офисы', title: 'IT-офис: 24 рулонные шторы за выходные',
+    desc: 'В open space мониторы ловили блики, а переговорной нужна была темнота для презентаций. Поставили рулонные шторы «день-ночь» в зале и блэкаут в переговорной — всё за одни выходные.',
+    did: ['24 рулонные шторы «день-ночь» на створки', 'Блэкаут в переговорной для проектора', 'Монтаж в выходные — без помех для работы'],
+    photos: ['Фото: open space с рулонными шторами', 'Фото: переговорная с блэкаутом', 'Фото: штора на створке крупно'],
   },
   hotel: {
-    tag: 'Гостиницы и хостелы', title: 'Текстиль для гостиниц', price: 'от 40 000 ₽', term: 'от 14 дней',
-    desc: 'Бельё, полотенца, покрывала и шторы для номеров — одной партией, в одной стилистике и с запасом на ротацию.',
-    items: [
-      { name: 'Комплекты белья', price: 'от 2 600 ₽/компл.', text: 'Страйп-сатин и перкаль' },
-      { name: 'Полотенца', price: 'от 450 ₽/шт.', text: 'Махра 450–550 г/м²' },
-      { name: 'Шторы блэкаут', price: 'от 5 500 ₽/номер', text: 'Для крепкого сна гостей' },
-      { name: 'Покрывала и пледы', price: 'от 3 500 ₽/шт.', text: 'Под стиль номеров' },
-    ],
-    includes: ['Расчёт на номерной фонд', 'Образцы до заказа', 'Поставка партиями', 'Дозаказ в тех же цветах'],
-    examples: ['Мини-отель на 12 номеров — полный комплект текстиля', 'Хостел — шторы-перегородки для кроватей'],
+    tag: 'Гостиницы и хостелы', title: 'Мини-отель: номера в одной стилистике',
+    desc: 'Мини-отелю на 12 номеров нужно было обновить текстиль перед сезоном. Подобрали шторы, покрывала, бельё и полотенца в единой гамме и отшили одной партией с запасом на смену.',
+    did: ['Шторы блэкаут для крепкого сна гостей', 'Комплекты белья и полотенца с запасом на ротацию', 'Покрывала в одной гамме для всех номеров'],
+    photos: ['Фото: номер мини-отеля после обновления', 'Фото: стопка белья и полотенец', 'Фото: покрывало и шторы в номере'],
   },
   salon: {
-    tag: 'Салоны и клиники', title: 'Текстиль для салонов и клиник', price: 'от 15 000 ₽', term: 'от 7 дней',
-    desc: 'Шторы, ширмы и полотенца, которые легко стираются и выглядят опрятно каждый день.',
-    items: [
-      { name: 'Шторы и ширмы', price: 'от 3 500 ₽/шт.', text: 'Моющиеся ткани' },
-      { name: 'Полотенца с вышивкой', price: 'от 600 ₽/шт.', text: 'Логотип салона' },
-      { name: 'Пледы для зоны ожидания', price: 'от 2 200 ₽/шт.', text: 'Мягкие и практичные' },
-    ],
-    includes: ['Подбор под санитарные требования', 'Вышивка логотипа', 'Пошив и навеска'],
-    examples: ['Стоматология — шторы-ширмы в кабинеты', 'Салон красоты — полотенца с логотипом'],
+    tag: 'Салоны и клиники', title: 'Салон красоты: шторы и полотенца для кабинетов',
+    desc: 'Салону нужны были лёгкие шторы для зала и плотные — для кабинетов, где важна приватность. Добавили полотенца, которые выдерживают частые стирки.',
+    did: ['Лёгкий тюль в зал ожидания', 'Плотные шторы в кабинеты', 'Полотенца для ежедневной смены'],
+    photos: ['Фото: зал салона со светлым тюлем', 'Фото: кабинет с плотными шторами', 'Фото: полотенца на полке'],
   },
   gifts: {
-    tag: 'Корпоративные подарки', title: 'Подарки сотрудникам и партнёрам', price: 'от 2 000 ₽/набор', term: 'от 5 дней',
-    desc: 'Пледы, полотенца и наборы для дома в фирменной упаковке. Можно добавить вышивку или открытку.',
-    items: [
-      { name: 'Плед в упаковке', price: 'от 2 500 ₽', text: 'С лентой и открыткой' },
-      { name: 'Набор полотенец', price: 'от 2 000 ₽', text: 'Вышивка по запросу' },
-      { name: 'Комплект белья', price: 'от 5 900 ₽', text: 'Подарочная коробка' },
-    ],
-    includes: ['Подбор под бюджет', 'Упаковка и открытки', 'Доставка в офис по Иркутску'],
-    examples: ['50 пледов с вышивкой к Новому году', 'Наборы полотенец для партнёров'],
+    tag: 'Корпоративные подарки', title: 'Новогодние наборы для сотрудников',
+    desc: 'Компании нужны были тёплые подарки для команды. Собрали наборы из пледа и полотенец, упаковали в коробки с открыткой.',
+    did: ['Пледы и полотенца в едином стиле', 'Упаковка и открытка в каждом наборе', 'Доставка к офису к нужной дате'],
+    photos: ['Фото: подарочный набор в коробке', 'Фото: плед и полотенца крупно', 'Фото: наборы перед отправкой'],
+  },
+};
+
+// Сложные окна: по нажатию — фото и короткое описание (фото пока заглушки)
+const WINDOWS = {
+  erker: {
+    tag: 'Сложные окна', title: 'Шторы для эркера',
+    desc: 'Карниз повторяет форму эркера или ставится отдельно на каждую грань — ткань идёт ровно, без провисаний на стыках.',
+    did: ['Гнутый или составной карниз по замеру', 'Портьеры и тюль единым полотном или по секциям', 'Подхваты, чтобы открыть каждое окно'],
+    photos: ['Фото: эркер в гостиной со шторами', 'Фото: карниз на углу эркера', 'Фото: эркер со шторами на подхватах'],
+  },
+  attic: {
+    tag: 'Сложные окна', title: 'Шторы для мансардных окон',
+    desc: 'На наклонном окне обычная штора отвисает. Ставим шторы с фиксацией сверху и снизу — они держат наклон и легко открываются.',
+    did: ['Плиссе и рулонные шторы с направляющими', 'Блэкаут для спальни под крышей', 'Удобное управление даже высоко'],
+    photos: ['Фото: мансардное окно со шторой плиссе', 'Фото: спальня под крышей', 'Фото: фиксация шторы на наклоне'],
+  },
+  panorama: {
+    tag: 'Сложные окна', title: 'Шторы для панорамных окон',
+    desc: 'Окна от пола до потолка: шьём длинные полотна без заметных швов и подбираем потолочный карниз, который выдержит вес ткани.',
+    did: ['Потолочный карниз под длинные полотна', 'Плотные портьеры и лёгкий тюль в паре', 'Длина точно до пола'],
+    photos: ['Фото: гостиная с панорамным окном', 'Фото: портьеры от потолка до пола', 'Фото: тюль на панорамном окне днём'],
+  },
+  arch: {
+    tag: 'Сложные окна', title: 'Шторы для арочных окон',
+    desc: 'Повторяем изгиб арки: кроим полотно по шаблону или крепим ткань так, чтобы красивый верх окна оставался открытым.',
+    did: ['Крой по шаблону арки', 'Римские и австрийские шторы', 'Подхваты для открытой арки'],
+    photos: ['Фото: арочное окно со шторами', 'Фото: крой по форме арки крупно', 'Фото: арка с подхватами'],
+  },
+  custom: {
+    tag: 'Сложные окна', title: 'Окна нестандартных размеров',
+    desc: 'Узкие, очень широкие, угловые или с выступами — замеряем на месте и шьём точно по размерам, без «почти подошло».',
+    did: ['Замер с образцами тканей', 'Пошив под любую ширину и высоту', 'Крепление под вашу стену и потолок'],
+    photos: ['Фото: узкое высокое окно со шторой', 'Фото: угловое окно', 'Фото: очень широкое окно в зале'],
   },
 };
 
@@ -157,20 +182,23 @@ const CASES = [
 const CASES_SHOW_META = false;
 
 // Отзывы — ОБРАЗЦЫ. Заменить на реальные отзывы с карточек Яндекса и 2ГИС
+// Настоящие отзывы с оценкой 5 ★, самые свежие (2ГИС и Яндекс Карты, ноябрь 2026). По просьбе клиента — только имена.
+// На Яндексе отзывов за 2026 год с текстом нашёлся один — остальные свежие из 2025 и конца 2024.
 const REVIEWS = {
   yandex: [
-    { name: 'Анна', date: 'октябрь 2026', stars: 5, text: 'Заказывали шторы в спальню: помогли подобрать ткань, приехали на замер, через неделю всё повесили. Качество пошива отличное.' },
-    { name: 'Марина', date: 'сентябрь 2026', stars: 5, text: 'Очень приятный салон, большой выбор белья. Девушки-консультанты подсказали размер одеяла и подобрали комплект в тон.' },
-    { name: 'Сергей', date: 'сентябрь 2026', stars: 5, text: 'Нужны были шторы на эркер, в двух местах отказали. Здесь сделали карниз по форме и сшили всё аккуратно.' },
-    { name: 'Ольга', date: 'август 2026', stars: 4, text: 'Хороший тюль и адекватные цены. Пришлось подождать навеску пару дней, но результат понравился.' },
+    { name: 'Ирина', date: 'июль 2026', stars: 5, text: 'Хороший выбор, быстро нашла, что искала, быстро и качественно сшили на заказ 👌' },
+    { name: 'Елена', date: 'февраль 2025', stars: 5, text: 'Индивидуальный подход. Отличное качество изделий. Был пошив покрывала и штор в две комнаты. Сделали всё быстро, были на связи, когда возникали вопросы по дизайну.' },
+    { name: 'Ксю', date: 'февраль 2025', stars: 5, text: 'Очень качественные современные ткани. Продавцы грамотные и отзывчивые, помогли выбрать подходящую ткань, рассчитали размер портьер, учли все мои пожелания. Профессиональные мастера. Очень довольна. Рекомендую.' },
+    { name: 'Лилия', date: 'декабрь 2024', stars: 5, text: 'Очень качественные и хорошие шторы, брали на кухню, помогли выбрать цвет, фасон. Консультант — настоящий специалист, общительный. Обязательно вернёмся ещё раз 😉' },
   ],
   gis: [
-    { name: 'Екатерина', date: 'октябрь 2026', stars: 5, text: 'Отправила фото комнаты в WhatsApp — в тот же день прислали варианты и цену. Очень удобно.' },
-    { name: 'Дмитрий', date: 'октябрь 2026', stars: 5, text: 'Покупали плед и полотенца в подарок, красиво упаковали. Рекомендую.' },
-    { name: 'Наталья', date: 'сентябрь 2026', stars: 5, text: 'Шили римские шторы на кухню. Всё по размеру, ткань не выгорает. Буду заказывать ещё в детскую.' },
-    { name: 'Ирина', date: 'июль 2026', stars: 5, text: 'Уютный салон в «Октябрьском», всегда есть новинки. Бонусы в UDS — приятный плюс.' },
+    { name: 'Анна', date: 'ноябрь 2026', stars: 5, text: 'Отличный магазин, без покупки не уйти) Большой ассортимент, хорошее качество, доброжелательные продавцы. Если вам нужен подарок, красивые шторы, тёплое одеяло, уютный домашний текстиль — вам точно стоит однажды прийти в этот магазин!' },
+    { name: 'Александр', date: 'январь 2026', stars: 5, text: 'Обращаюсь в данную организацию не первый раз. Работу выполняют качественно и очень быстро. Огромная благодарность за созданный уют в доме!' },
+    { name: 'Данил', date: 'январь 2026', stars: 5, text: 'Сложно было представить, сколько красивых тканей, оказывается, может быть — впечатлён! Быстро подобрали и сшили мне шторы в квартиру, очень доволен.' },
+    { name: 'Антон', date: 'январь 2026', stars: 5, text: 'Молодцы! Сделали всё очень быстро и качественно! Сотрудники вежливые и тактичные, посоветовали, как правильно сделать и в каких тонах. Спасибо огромное! Буду всем советовать ваш салон.' },
   ],
 };
+// «Написали нам лично» — ОБРАЗЦЫ, заменить на настоящие сообщения клиентов (только имя)
 const PERSONAL = [
   { from: 'Светлана', via: 'WhatsApp', time: '21:14', text: 'Шторы висят уже неделю, а я всё не нарадуюсь! Спасибо, что уговорили на тюль потоньше — комната стала светлее.' },
   { from: 'Алексей', via: 'Telegram', time: '18:02', text: 'Жена в восторге от комплекта на годовщину. Упаковка — огонь, спасибо за помощь с выбором.' },
@@ -236,7 +264,9 @@ const DECO = {
   // только мягкие цветные пятна (мята / персик / лаванда / небо) — как в согласованном макете
   hits:    [{ t: 'blob', x: 18, y: 30, s: 52, c: '#BFE6DA' }, { t: 'blob', x: 82, y: 60, s: 50, c: '#FAD2BB' }],
   tryon:   [{ t: 'blob', x: 12, y: 35, s: 50, c: '#FAD2BB' }, { t: 'blob', x: 88, y: 25, s: 44, c: '#DED5F6' }, { t: 'blob', x: 60, y: 85, s: 46, c: '#BFE6DA' }],
+  textile: [{ t: 'blob', x: 15, y: 30, s: 46, c: '#FAD2BB' }, { t: 'blob', x: 85, y: 70, s: 48, c: '#BFE6DA' }],
   process: [{ t: 'blob', x: 10, y: 55, s: 48, c: '#BFE6DA' }, { t: 'blob', x: 85, y: 30, s: 46, c: '#FAD2BB' }],
+  salon:   [{ t: 'blob', x: 12, y: 30, s: 48, c: '#BFE6DA' }, { t: 'blob', x: 88, y: 70, s: 46, c: '#FAD2BB' }],
   works:   [{ t: 'blob', x: 85, y: 30, s: 46, c: '#DED5F6' }, { t: 'blob', x: 12, y: 70, s: 44, c: '#BFE6DA' }],
   reviews: [{ t: 'blob', x: 45, y: 50, s: 50, c: '#D8E5F7' }, { t: 'blob', x: 88, y: 40, s: 44, c: '#FAD2BB' }],
   gifts:   [{ t: 'blob', x: 12, y: 25, s: 50, c: '#FAD2BB' }, { t: 'blob', x: 80, y: 60, s: 48, c: '#BFE6DA' }, { t: 'blob', x: 45, y: 90, s: 40, c: '#DED5F6' }],
@@ -288,6 +318,35 @@ function initGlassPointer() {
     }
   }, { passive: true });
   document.addEventListener('pointerleave', release);
+
+}
+
+
+// Сильный «магнит» для кнопок .btn--magnet: притягиваются к курсору уже на подлёте (радиус ~90 px).
+// Работает и в облегчённом режиме — это дёшево (2 кнопки, один кадр на движение мыши). Только мышь.
+function initStrongMagnet() {
+  const strong = $$('.btn--magnet');
+  if (strong.length && !reduceMotion() && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    let raf = 0, px = 0, py = 0;
+    const pull = () => {
+      raf = 0;
+      strong.forEach((b) => {
+        const r = b.getBoundingClientRect();
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const dx = px - cx, dy = py - cy, R = 90;
+        const inX = Math.abs(dx) < r.width / 2 + R, inY = Math.abs(dy) < r.height / 2 + R;
+        if (inX && inY) {
+          b.style.setProperty('--tx', `${Math.max(-14, Math.min(14, dx * 0.12)).toFixed(1)}px`);
+          b.style.setProperty('--ty', `${Math.max(-9, Math.min(9, dy * 0.22)).toFixed(1)}px`);
+          b.classList.add('is-pulled');
+        } else if (b.classList.contains('is-pulled')) {
+          b.style.setProperty('--tx', '0px'); b.style.setProperty('--ty', '0px');
+          b.classList.remove('is-pulled');
+        }
+      });
+    };
+    document.addEventListener('pointermove', (e) => { px = e.clientX; py = e.clientY; if (!raf) raf = requestAnimationFrame(pull); }, { passive: true });
+  }
 }
 
 function initHeader() {
@@ -307,14 +366,31 @@ function initHeader() {
   window.addEventListener('scroll', () => header.classList.toggle('is-scrolled', window.scrollY > 20), { passive: true });
 
   // подсветка активного пункта меню
+  // подсветка активного пункта меню: стеклянная капля переплывает от пункта к пункту (как переключатель 2ГИС / Яндекс)
   const links = $$('.nav a');
+  const nav = $('.nav'), navBlob = nav?.querySelector('.nav__blob');
+  const placeNav = (a, animate = true) => {
+    if (!navBlob) return;
+    if (!a || !a.offsetWidth) { nav.classList.remove('has-active'); return; }
+    const first = !nav.classList.contains('has-active');
+    if (first || !animate) navBlob.style.transition = 'none';
+    else { navBlob.classList.remove('is-moving'); void navBlob.offsetWidth; navBlob.classList.add('is-moving'); }
+    navBlob.style.width = a.offsetWidth + 'px';
+    navBlob.style.transform = `translateX(${a.offsetLeft}px)`;
+    nav.classList.add('has-active');
+    if (first || !animate) { void navBlob.offsetWidth; navBlob.style.transition = ''; }
+  };
   const io = new IntersectionObserver((entries) => {
     entries.forEach((e) => {
       if (!e.isIntersecting) return;
       links.forEach((a) => a.classList.toggle('is-active', a.getAttribute('href') === '#' + e.target.id));
+      placeNav(links.find((a) => a.classList.contains('is-active')));
     });
   }, { rootMargin: '-40% 0px -55% 0px' });
-  ['hits', 'tryon', 'process', 'reviews', 'gifts', 'contacts'].forEach((id) => { const s = document.getElementById(id); if (s) io.observe(s); });
+  ['top', 'hits', 'process', 'textile', 'tryon', 'salon', 'reviews', 'gifts', 'contacts'].forEach((id) => { const s = document.getElementById(id); if (s) io.observe(s); });
+  const placeNavNow = () => placeNav(links.find((a) => a.classList.contains('is-active')), false);
+  window.addEventListener('resize', placeNavNow);
+  document.fonts?.ready.then(placeNavNow);
 }
 
 /* ---------- 4. Интро-шторы и тост ---------- */
@@ -345,14 +421,13 @@ function splitHeroTitle() {
   return n;
 }
 
-// Хореография первого экрана: панель → метка → заголовок по словам → текст → кнопки; карточки фото — следом
+// Хореография первого экрана: логотип в просвете штор → заголовок по словам → кнопки → строка фактов
 function revealHero() {
   const words = $$('.hero__title .w').length;
   const tTitle = 160, tAfter = tTitle + words * 55 + 120;
   const plan = [
-    ['.hero__text', 0], ['.hero .chip', 90], ['.hero__title', tTitle],
-    ['.hero__lead', tAfter], ['.hero__actions', tAfter + 110], ['.hero .rating-badge', tAfter + 220],
-    ['.hero .m1', 320], ['.hero .m2', 470], ['.hero .m3', 620],
+    ['.hero__sign', 0], ['.hero__title', tTitle],
+    ['.hero__actions', tAfter], ['.hero__rail', tAfter + 180],
   ];
   plan.forEach(([sel, d]) => { const el = $(sel); if (el) el.style.setProperty('--d', reduceMotion() ? '0ms' : `${d}ms`); });
   $$('.hero .reveal').forEach((el) => el.classList.add('is-in'));
@@ -363,17 +438,32 @@ function initCurtains(onDone) {
   splitHeroTitle();
   const canvas = $('#curtain-canvas');
   if (!window.Curtains || !canvas) { revealHero(); onDone?.(); return; }
+  // «Тихий режим»: пока шторы открываются и покачиваются, стекло, размытия и фоновые анимации выключены (стили, блок 29) —
+  // видеокарта занята только тканью. Шторы замерли — эффекты плавно возвращаются, плашка «Дарим 1000 ₽» появляется после.
+  const html = document.documentElement;
+  html.classList.add('cq');
+  let done = false, guard = 0;
+  const rest = () => {
+    if (done) return; done = true; clearTimeout(guard);
+    html.classList.add('cq-out'); html.classList.remove('cq');
+    setTimeout(() => html.classList.remove('cq-out'), 900);
+    onDone?.();
+  };
   window.Curtains.init({
     canvas,
-    onOpenStart: revealHero,          // шторы разошлись на треть — проявляется текст
-    onSettled: onDone,
+    onOpenStart: () => { revealHero(); guard = setTimeout(rest, 14000); },   // страховка: если шторы ушли с экрана и «не заснули»
+    onRest: rest,
   });
 }
 
 function initToast() {
   const toast = $('#toast');
   if (store.get('toast-closed')) return;
-  setTimeout(() => { toast.hidden = false; }, reduceMotion() ? 1500 : CONFIG.toastDelay);
+  setTimeout(() => {
+    toast.hidden = false;
+    // на телефоне плашка сама прячется через 8 с, чтобы не мешать (покажется снова при следующем заходе)
+    if (matchMedia('(max-width: 719px)').matches) setTimeout(() => { toast.hidden = true; }, 8000);
+  }, reduceMotion() ? 1500 : CONFIG.toastDelay);
   const close = () => { toast.hidden = true; store.set('toast-closed', '1'); };
   toast.querySelector('.toast__close').addEventListener('click', close);
   $('#toast-link').addEventListener('click', close);
@@ -405,6 +495,8 @@ function initModals() {
     });
   });
   $$('[data-open-contact]').forEach((b) => b.addEventListener('click', () => openContact()));
+  // «Как мы работаем» → платный путь: мессенджер с готовым текстом про выездной замер
+  $$('[data-zamer]').forEach((b) => b.addEventListener('click', () => openContact('Здравствуйте! Хочу записаться на выездной замер.', 'Записаться на замер', 'Сообщение уже готово — выберите мессенджер')));
 }
 
 // Ссылки мессенджеров. text — готовое сообщение (например, «Есть ли в наличии …?»)
@@ -415,16 +507,57 @@ function messengerLinks(text = '') {
     { key: 'tg', label: 'Telegram', icon: 'i-tg', href: `https://t.me/${CONFIG.telegram}`, copy: !!text }, // Telegram не подставляет текст в личный чат — копируем в буфер
     { key: 'max', label: 'MAX', icon: 'i-max', href: CONFIG.max, copy: !!text },
     { key: 'phone', label: 'Позвонить', icon: 'i-phone', href: `tel:${CONFIG.phones[0].raw}` },
-  ];
+  ].filter((m) => m.href); // пустая ссылка (например, MAX без адреса) — кнопку не показываем
 }
 function renderMessengers(container, text = '') {
+  // в подвале — круглые кнопки с анимацией (иконка → стрелка, свечение цветом сети, дуги у соседей)
+  if (container.closest('.footer')) return renderSocial(container, text);
   container.innerHTML = messengerLinks(text).map((m) =>
     `<a class="msgr msgr--${m.key}" href="${m.href}" ${m.key !== 'phone' ? 'target="_blank" rel="noopener"' : ''} ${m.copy ? 'data-copy' : ''}>${icon(m.icon)}<span>${m.label}</span></a>`
   ).join('');
 }
+const SOC_COLORS = { wa: '#25D366', tg: '#2AABEE', max: '#7B61FF', phone: '#A9DFCF' };
+function renderSocial(container, text = '') {
+  container.classList.add('soc');
+  container.innerHTML = messengerLinks(text).map((m) =>
+    `<a class="soc__btn" style="--c:${SOC_COLORS[m.key]}" href="${m.href}" ${m.key !== 'phone' ? 'target="_blank" rel="noopener"' : ''} ${m.copy ? 'data-copy' : ''} aria-label="${m.label}" title="${m.label}">` +
+    `<span class="soc__arc" aria-hidden="true"></span><span class="soc__ico">${icon(m.icon)}${icon('i-arrow')}</span></a>`
+  ).join('');
+  const btns = [...container.children];
+  const clear = () => { container.classList.remove('is-on'); btns.forEach((b) => b.removeAttribute('data-side')); };
+  const on = (b) => {
+    const i = btns.indexOf(b);
+    btns.forEach((x, j) => {
+      if (j === i - 1) x.dataset.side = 'right';      // сосед слева — дуга на его правом боку
+      else if (j === i + 1) x.dataset.side = 'left';  // сосед справа — дуга на левом боку
+      else x.removeAttribute('data-side');
+    });
+    container.style.setProperty('--arc', b.style.getPropertyValue('--c'));
+    container.classList.add('is-on');
+  };
+  btns.forEach((b) => {
+    b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') on(b); });
+    b.addEventListener('focus', () => { if (b.matches(':focus-visible')) on(b); });
+    b.addEventListener('blur', clear);
+  });
+  container.addEventListener('pointerleave', clear);
+}
+
+// Рабочее время салона (как в подвале): ежедневно 10:00–20:00 по Иркутску
+const HOURS = { from: 10, to: 20 };
+function contactHours() {
+  const st = $('#contact-status'), dot = $('#contact-dot');
+  if (!st) return;
+  let h = new Date().getHours();
+  try { h = +new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Irkutsk', hour: 'numeric', hourCycle: 'h23' }).format(new Date()); } catch (e) { /* старый браузер — местное время */ }
+  const open = h >= HOURS.from && h < HOURS.to;
+  st.textContent = open ? 'сейчас открыто' : `сейчас закрыто — ответим с ${HOURS.from}:00`;
+  dot.classList.toggle('is-open', open);
+}
 
 function openContact(text = '', title = 'Напишите нам', lead = 'Ответим в течение 15 минут в рабочее время') {
   const dlg = $('#contact-modal');
+  contactHours();
   $('#contact-title').textContent = title;
   $('#contact-lead').textContent = lead;
   const preview = $('#contact-preview');
@@ -441,6 +574,19 @@ function openContact(text = '', title = 'Напишите нам', lead = 'От�
 
 /* ---------- 6. Экран 2 — хиты ---------- */
 // Универсальный сегмент-переключатель с «жидкой» каплей
+// Если вкладки не помещаются — край переключателя растворяется: видно, что дальше есть ещё (например, «Детское»)
+function segOverflow(seg) {
+  if (!seg) return;
+  const upd = () => {
+    seg.classList.toggle('is-scrollable', seg.scrollWidth > seg.clientWidth + 2);
+    seg.classList.toggle('at-end', seg.scrollLeft + seg.clientWidth >= seg.scrollWidth - 2);
+  };
+  seg.addEventListener('scroll', upd, { passive: true });
+  window.addEventListener('resize', upd);
+  document.fonts?.ready.then(upd);
+  upd();
+}
+
 function initSeg(seg, onChange) {
   const blob = seg.querySelector('.seg__blob');
   const tabs = $$('[role="tab"]', seg);
@@ -473,45 +619,78 @@ function initSeg(seg, onChange) {
   document.fonts?.ready.then(() => place(current(), false));
 }
 
-function renderProducts(cat) {
-  const wrap = $('#products');
-  const list = PRODUCTS.filter((p) => p.cat === cat);
-  wrap.innerHTML = list.map((p, i) => {
-    const [label, cls] = BADGES[p.badge] || BADGES.hit;
-    return `<button class="product glass" type="button" data-i="${PRODUCTS.indexOf(p)}" style="animation-delay:${i * 60}ms">
-      <span class="badge ${cls}">${label}</span>
-      <span class="ph" data-label="${esc(p.photo)}"></span>
-      <span class="product__body">
-        <span class="product__name">${esc(p.name)}</span>
-        <span class="product__row">
-          <span class="product__price">от ${rub(p.price)} ${p.unit ? `<small>${esc(p.unit)}</small>` : ''}</span>
-          <span class="product__cta" aria-hidden="true">Отложить</span>
-        </span>
-      </span>
-    </button>`;
-  }).join('');
+/* Хиты салона — бегущая строка с фото товаров.
+   Настоящие фото: добавьте товару в PRODUCTS поле img: 'assets/hits/имя.webp' (≈600×750, до 60 КБ) — заглушка заменится сама. */
+function initHits() {
+  const track = $('#hits-track');
+  if (!track) return;
+  // перемешиваем категории по кругу, чтобы шторы, бельё, пледы и детское шли вперемешку
+  const byCat = {};
+  PRODUCTS.forEach((p) => (byCat[p.cat] = byCat[p.cat] || []).push(p));
+  const cats = Object.values(byCat), list = [];
+  for (let i = 0; cats.some((c) => c[i]); i++) cats.forEach((c) => c[i] && list.push(c[i]));
+  const card = (p, hidden) => `<figure class="marquee__item"${hidden ? ' aria-hidden="true"' : ''}>
+      ${p.img
+        ? `<img src="${esc(p.img)}" alt="${hidden ? '' : esc(p.name)}" width="600" height="750" loading="lazy" decoding="async">`
+        : `<span class="ph" data-label="${esc(p.photo)}"></span>`}
+      <figcaption>${esc(p.name)}</figcaption>
+    </figure>`;
+  // два одинаковых набора подряд — лента сдвигается на половину и бесшовно повторяется
+  track.innerHTML = list.map((p) => card(p, false)).join('') + list.map((p) => card(p, true)).join('');
+  // не крутим анимацию, пока блок не на экране — экономим батарею на телефонах
+  const box = $('#hits-marquee');
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => box.classList.toggle('is-running', e.isIntersecting), { rootMargin: '100px' }).observe(box);
+  } else box.classList.add('is-running');
 }
 
-function initHits() {
-  renderProducts('curtains');
-  initSeg($('#hits-tabs'), (btn) => renderProducts(btn.dataset.cat));
-  $('#products').addEventListener('click', (e) => {
-    const card = e.target.closest('.product');
-    if (!card) return;
-    const p = PRODUCTS[+card.dataset.i];
-    const [label, cls] = BADGES[p.badge] || BADGES.hit;
-    $('#product-badge').className = 'badge ' + cls;
-    $('#product-badge').textContent = label;
-    $('#product-title').textContent = p.name;
-    $('#product-price').textContent = `от ${rub(p.price)}${p.unit ? ' ' + p.unit : ''}`;
-    $('#product-desc').textContent = p.desc;
-    $('#product-ph').dataset.label = p.photo;
-    $('#product-ask').onclick = () => {
-      closeModal($('#product-modal'));
-      openContact(`Здравствуйте! Есть ли в наличии «${p.name}»?`, 'Спросить о наличии', 'Сообщение уже готово — выберите мессенджер');
-    };
-    openModal($('#product-modal'));
-  });
+/* ---------- Экран 3.5 — «Выбрать домашний текстиль»: веер из стопки ----------
+   Карточки всегда стоят в CSS-сетке (это «разложенное» состояние). В «стопке» каждой карточке
+   задаётся сдвиг к центру (--sx/--sy) и поворот (--r) — анимируется только transform, поэтому плавно даже на слабых телефонах. */
+function initTextile() {
+  const fan = $('#textile-stack'), btn = $('#textile-toggle'), hint = $('#textile-hint');
+  if (!fan || !btn) return;
+  const n = TEXTILE.length;
+  fan.innerHTML = TEXTILE.map((t, i) => `<li class="fan__card" style="--i:${i};--z:${n - i};--r:${((i - (n - 1) / 2) * 5).toFixed(1)}deg">
+      <figure>
+        ${t.img
+          ? `<img src="${esc(t.img)}" alt="${esc(t.name)}" width="600" height="750" loading="lazy" decoding="async">`
+          : `<span class="ph${i % 2 ? ' ph--peach' : ''}" data-label="${esc(t.photo)}"></span>`}
+        <figcaption>${esc(t.name)}</figcaption>
+      </figure>
+    </li>`).join('');
+  const cards = [...fan.children];
+  let open = false, raf = 0;
+
+  const layout = () => {
+    const ch = cards[0].offsetHeight, cw = cards[0].offsetWidth;
+    const closedH = Math.round(ch + 70);
+    const openH = Math.max(...cards.map((c) => c.offsetTop + c.offsetHeight));
+    const cx = fan.clientWidth / 2, cy = closedH / 2;
+    cards.forEach((c) => {
+      c.style.setProperty('--sx', Math.round(cx - (c.offsetLeft + cw / 2)) + 'px');
+      c.style.setProperty('--sy', Math.round(cy - (c.offsetTop + ch / 2)) + 'px');
+    });
+    fan.style.height = (open ? openH : closedH) + 'px';
+  };
+  const relayout = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(layout); };
+
+  const set = (v) => {
+    open = v;
+    fan.dataset.state = open ? 'open' : 'closed';
+    btn.textContent = open ? 'Собрать в стопку' : 'Разложить';
+    btn.setAttribute('aria-expanded', String(open));
+    hint.textContent = open ? 'Всё это можно потрогать и выбрать в салоне' : 'Целая стопка уюта — разложим?';
+    layout();
+  };
+
+  layout();
+  requestAnimationFrame(() => fan.classList.add('fan--ready')); // анимации включаем после первой расстановки — без рывка при загрузке
+  btn.addEventListener('click', () => set(!open));
+  fan.addEventListener('click', () => { if (!open) set(true); }); // по самой стопке тоже можно нажать
+  window.addEventListener('resize', relayout);
+  document.fonts?.ready.then(relayout);
+  fan.querySelectorAll('img').forEach((img) => img.addEventListener('load', relayout, { once: true }));
 }
 
 /* ---------- 7. Экран 3 — примерочная ---------- */
@@ -520,7 +699,7 @@ function initHits() {
   - фото рисуется в <canvas>, поверх — текстура штор, сгенерированная кодом под выбранный тип/ткань;
   - текстура натягивается на 4 угла (перспективная трансформация через гомографию + разбиение на треугольники),
     поэтому итоговую картинку можно выгрузить одним toDataURL() и отправить с заявкой.
-  Слой 2 — нейросеть: refineWithAI() и detectWindowAI() (заглушки, см. ниже).
+  Слой 2 — нейросеть: «Сделать реалистично» — раздел 7.1 (runAI → api/tryon.php); detectWindowAI() — пока заглушка.
 */
 const tryon = {
   img: null,                 // исходное фото (HTMLImageElement / canvas)
@@ -794,7 +973,8 @@ function loadPhotoUrl(url, after) {
     tryon.showAfter = true;
     $('#dropzone').hidden = true;
     $('#stage-inner').hidden = false;
-    $('#ai-result').hidden = true;
+    aiAbort?.abort();
+    hideAI();
     $('#btn-newphoto').hidden = false;
     ['#btn-reset', '#btn-compare', '#btn-detect', '#btn-ai', '#btn-want'].forEach((s) => { $(s).disabled = false; });
     requestRender(true);
@@ -861,7 +1041,7 @@ function initTryon() {
       h.setPointerCapture(e.pointerId);
       h.classList.add('is-drag');
       $('#stage-tip').style.opacity = '0';
-      $('#ai-result').hidden = true;
+      hideAI();
     });
     h.addEventListener('pointermove', (e) => {
       if (!h.hasPointerCapture(e.pointerId)) return;
@@ -888,7 +1068,7 @@ function initTryon() {
     tryon.showAfter = true;
     $('#btn-compare').setAttribute('aria-pressed', 'false');
     inner.classList.remove('is-before');
-    $('#ai-result').hidden = true;
+    hideAI();
     requestRender(true);
   });
   $('#btn-compare').addEventListener('click', (e) => {
@@ -908,26 +1088,8 @@ function initTryon() {
     } finally { btn.classList.remove('is-loading'); }
   });
 
-  $('#btn-ai').addEventListener('click', async () => {
-    const loader = $('#ai-loader');
-    loader.hidden = false;
-    $('#btn-ai').disabled = true;
-    try {
-      const result = await refineWithAI(buildAIPayload());
-      if (result?.image) {
-        const ai = $('#ai-result');
-        ai.src = result.image;
-        ai.hidden = false;
-        tryon.aiImage = result.image;
-      }
-    } catch (err) {
-      console.error(err);
-      notice('Не получилось улучшить фото. Попробуйте ещё раз или оставьте заявку — дизайнер пришлёт эскиз вручную.');
-    } finally {
-      loader.hidden = true;
-      $('#btn-ai').disabled = false;
-    }
-  });
+  $('#btn-ai').addEventListener('click', runAI);
+  initAiResult();
 
   $('#btn-want').addEventListener('click', () => {
     const wasAfter = tryon.showAfter;
@@ -958,67 +1120,196 @@ function radioKeys(group) {
   });
 }
 
-// Маска окна: белый четырёхугольник на чёрном, тот же размер, что у фото
-function buildMask() {
+/* ---------- 7.1 ИИ-примерка: фото + образец ткани → нейросеть (Nano Banana через свой прокси) ----------
+   Ключ нейросети на страницу не попадает: запрос идёт на CONFIG.api.refine (api/tryon.php),
+   а уже сервер ходит в Polza.ai. Модель и тексты промптов — в site/api/config.json.
+   1 нажатие «Сделать реалистично» = 1 запрос (~3 ₽, ~30 с). Пока ждём — экран загрузки с шагами и прогрессом. */
+const CURTAIN_NAMES = { portieres: 'портьеры', tulle: 'тюль', combo: 'портьеры с тюлем', roman: 'римские шторы', roller: 'рулонные шторы' };
+const AI_STEPS = [            // [с какой секунды, что пишем]
+  [0, 'Изучаем комнату и окно'],
+  [5, 'Подбираем ткань под ваш свет'],
+  [11, 'Рисуем складки'],
+  [18, 'Добавляем мягкие тени'],
+  [25, 'Проверяем детали'],
+  [33, 'Почти готово, ещё чуть-чуть'],
+  [50, 'Нейросеть сегодня задумчивая, ждём ещё немного'],
+];
+const AI_ERRORS = {
+  limit_ip: 'Вы сделали много примерок подряд. Попробуйте через час или нажмите «Хочу так» — подберём шторы вместе.',
+  limit_day: 'На сегодня примерки нейросетью закончились. Нажмите «Хочу так» — дизайнер пришлёт эскиз вручную.',
+};
+let aiAbort = null;           // AbortController текущего запроса (null — нейросеть не работает)
+
+// Фото для нейросети: JPEG не больше 1024 px — быстрее и дешевле
+function photoForAI(maxSide = 1024) {
+  const src = tryon.photo;
+  const k = Math.min(1, maxSide / Math.max(src.width, src.height));
   const c = document.createElement('canvas');
-  c.width = tryon.photo.width; c.height = tryon.photo.height;
-  const g = c.getContext('2d');
-  g.fillStyle = '#000'; g.fillRect(0, 0, c.width, c.height);
-  g.fillStyle = '#fff';
-  g.beginPath();
-  tryon.corners.forEach(([x, y], i) => (i ? g.lineTo : g.moveTo).call(g, x * c.width, y * c.height));
-  g.closePath(); g.fill();
-  return c.toDataURL('image/png');
+  c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+  c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.85);
 }
 
-function buildAIPayload() {
+// Образец ткани (вторая картинка для нейросети): цвет + фактура выбранной ткани
+function fabricSwatch(kind, color) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = color; g.fillRect(0, 0, 512, 512);
+  g.save(); g.scale(2, 2); g.fillStyle = fabricPattern(g, kind); g.fillRect(0, 0, 256, 256); g.restore();
+  const light = g.createLinearGradient(0, 0, 512, 512);   // мягкий свет, чтобы читалось как ткань, а не заливка
+  light.addColorStop(0, 'rgba(255,255,255,.16)'); light.addColorStop(0.5, 'rgba(255,255,255,0)'); light.addColorStop(1, 'rgba(0,0,0,.12)');
+  g.fillStyle = light; g.fillRect(0, 0, 512, 512);
+  return c.toDataURL('image/jpeg', 0.9);
+}
+
+function buildAIRequest() {
+  const tulleOnly = tryon.type === 'tulle';               // у тюля своя белая вуаль, как и в ручной подгонке
+  const kind = tulleOnly ? 'sheer' : tryon.fabric.kind;
+  const color = tulleOnly ? TULLE_COLOR : tryon.fabric.color;
   return {
-    photo: tryon.photo.toDataURL('image/jpeg', 0.9),  // исходное фото без штор
-    mask: buildMask(),                                 // где рисовать (зона окна)
-    corners: tryon.corners,                            // углы окна в долях 0..1 (TL, TR, BR, BL)
-    preview: $('#tryon-canvas').toDataURL('image/jpeg', 0.8), // ручная примерка — подсказка по композиции
-    curtain: {
-      type: tryon.type,                                // portieres | tulle | combo | roman | roller
-      fabric: { name: tryon.fabric.name, color: tryon.fabric.color, kind: tryon.fabric.kind },
-      fullness: tryon.fullness,
-      lift: tryon.lift,
-      tulleOpacity: tryon.tulleOpacity,
-    },
+    photo: photoForAI(),
+    fabric: fabricSwatch(kind, color),
+    curtain: { type: tryon.type, kind, color, lift: tryon.lift },
+    label: CURTAIN_NAMES[tryon.type] + (tulleOnly ? '' : ', ' + tryon.fabric.name.toLowerCase()),
   };
 }
 
-/**
- * refineWithAI(payload) — доработка примерки нейросетью (слой 2).
- *
- * ВАЖНО: ключи API нейросети на фронтенде НЕ храним. Запрос идёт на свой серверный прокси
- * (CONFIG.api.refine), например Yandex Cloud Function / свой Node-сервер. Прокси:
- *   1) проверяет размер и тип картинок, ставит лимит запросов по IP (защита от накрутки);
- *   2) вызывает модель inpainting/image-edit (например, Stable Diffusion + ControlNet, FLUX Fill,
- *      YandexART или аналог), передавая:
- *        - image  = payload.photo   (исходное фото),
- *        - mask   = payload.mask    (белое — зона окна, где можно рисовать),
- *        - prompt = собирается на сервере из payload.curtain, например:
- *          "photorealistic {type} curtains, {fabric.kind} fabric, color {fabric.color},
- *           natural folds, soft daylight from window, realistic shadows, curtain rod, interior photo";
- *        - control/reference = payload.preview (ручная примерка задаёт композицию);
- *   3) возвращает JSON { image: "https://…/result.jpg" } или dataURL.
- *
- * Время ответа 10–30 с — поэтому на фронте показывается индикатор #ai-loader.
- */
-async function refineWithAI(payload) {
-  if (CONFIG.demoMode) {
-    // Имитация: сервера ещё нет — ждём и возвращаем ручную примерку
-    await new Promise((r) => setTimeout(r, 2500));
-    console.info('[demo] refineWithAI payload:', { ...payload, photo: '…', mask: '…', preview: '…' });
-    return { image: payload.preview, demo: true };
+async function refineWithAI(req, signal) {
+  if (!CONFIG.aiLive) {        // имитация без денег: ждём и возвращаем ручную подгонку
+    await new Promise((ok, no) => { const t = setTimeout(ok, 3000); signal.addEventListener('abort', () => { clearTimeout(t); no(new DOMException('', 'AbortError')); }); });
+    return { image: $('#tryon-canvas').toDataURL('image/jpeg', 0.85), demo: true };
   }
   const res = await fetch(CONFIG.api.refine, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ photo: req.photo, fabric: req.fabric, curtain: req.curtain }),
+    signal,
   });
-  if (!res.ok) throw new Error('refine failed: ' + res.status);
-  return res.json(); // { image }
+  let data = null;
+  try { data = await res.json(); } catch { data = { error: 'not_json', message: 'сервер ответил не JSON — скорее всего, сайт запущен старой версией serve.ps1, перезапустите' }; }
+  if (!res.ok || !data?.ok || !data.image) {
+    const err = new Error(data?.message || 'HTTP ' + res.status);
+    err.code = data?.error || 'http_' + res.status;
+    throw err;
+  }
+  return data;                 // { ok, image: url, seconds, cost }
+}
+
+// Дожидаемся, пока картинка реально скачается, — чтобы не показать пустое место
+function preloadImage(url, signal) {
+  return new Promise((ok, no) => {
+    const img = new Image();
+    img.onload = () => ok(url);
+    img.onerror = () => no(Object.assign(new Error('image load failed'), { code: 'image' }));
+    signal.addEventListener('abort', () => { img.src = ''; no(new DOMException('', 'AbortError')); });
+    img.src = url;
+  });
+}
+
+// Экран ожидания: шаги, секунды, прогресс (плавно ползёт к 95 %, на финише — 100 %)
+function startAiLoader() {
+  const el = $('#ai-loader'), bar = $('#ai-bar'), stepEl = $('#ai-step'), timeEl = $('#ai-time'), inner = $('#stage-inner');
+  const t0 = performance.now();
+  let raf = 0, lastStep = -1, lastSec = -1;
+  el.classList.remove('is-done');
+  bar.style.transform = 'scaleX(0)';
+  el.hidden = false;
+  inner.classList.add('is-ai-busy');
+  const tick = () => {
+    const s = (performance.now() - t0) / 1000;
+    bar.style.transform = `scaleX(${(0.95 * (1 - Math.exp(-s / 15))).toFixed(4)})`;
+    const sec = Math.floor(s);
+    if (sec !== lastSec) { lastSec = sec; timeEl.textContent = sec + ' с'; }
+    const step = AI_STEPS.filter(([at]) => s >= at).length - 1;
+    if (step !== lastStep) { lastStep = step; stepEl.textContent = AI_STEPS[step][1] + '…'; }
+    raf = requestAnimationFrame(tick);
+  };
+  tick();
+  return {
+    done() {
+      cancelAnimationFrame(raf);
+      bar.style.transform = 'scaleX(1)';
+      stepEl.textContent = 'Готово!';
+      el.classList.add('is-done');
+      inner.classList.remove('is-ai-busy');
+      setTimeout(() => { el.hidden = true; }, 900);
+    },
+    stop() { cancelAnimationFrame(raf); el.hidden = true; inner.classList.remove('is-ai-busy'); },
+  };
+}
+
+async function runAI() {
+  if (aiAbort || !tryon.photo) return;
+  const btn = $('#btn-ai');
+  btn.disabled = true;
+  hideAI();
+  const req = buildAIRequest();
+  const ctrl = new AbortController();
+  aiAbort = ctrl;
+  const loader = startAiLoader();
+  try {
+    const result = await refineWithAI(req, ctrl.signal);
+    await preloadImage(result.image, ctrl.signal);
+    loader.done();
+    showAI(result.image, req.label);
+    if (result.seconds) console.info(`[ИИ-примерка] ${result.seconds} с, ${result.cost ?? '?'} ₽`);
+  } catch (err) {
+    loader.stop();
+    if (err.name === 'AbortError') return;
+    console.warn('[ИИ-примерка]', err.code, err.message);
+    // на тестовых адресах (localhost, trycloudflare) показываем техническую причину — посетители её не видят
+    const debug = /^(localhost|127\.0\.0\.1)$|trycloudflare\.com$/.test(location.hostname) ? ` [для нас: ${err.code} — ${err.message}]` : '';
+    notice((AI_ERRORS[err.code] || 'Не получилось сделать реалистичную версию. Попробуйте ещё раз или нажмите «Хочу так» — дизайнер пришлёт эскиз вручную.') + debug);
+  } finally {
+    if (aiAbort === ctrl) aiAbort = null;
+    btn.disabled = !tryon.photo;
+  }
+}
+
+function showAI(url, label) {
+  const ai = $('#ai-result');
+  ai.classList.remove('is-in'); void ai.offsetWidth;      // перезапуск анимации проявления
+  ai.src = url;
+  ai.hidden = false;
+  ai.classList.add('is-in');
+  tryon.aiImage = url;
+  $('#stage-inner').classList.add('has-ai');
+  $('#ai-caption').textContent = 'Так это может выглядеть у вас: ' + label;
+  const text = `Здравствуйте! Примерил(а) шторы у вас на сайте: ${label}.\nВот как получилось: ${url}\nХочу узнать стоимость.`;
+  $('#ai-wa').href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`;
+  $('#ai-actions').hidden = false;
+}
+
+// Убрать результат нейросети и вернуться к ручной подгонке
+function hideAI() {
+  const inner = $('#stage-inner');
+  if (inner.classList.contains('is-ai-before')) { tryon.showAfter = true; requestRender(); }
+  inner.classList.remove('has-ai', 'is-ai-before');
+  $('#ai-result').hidden = true;
+  $('#ai-actions').hidden = true;
+  const b = $('#ai-before');
+  b.setAttribute('aria-pressed', 'false'); b.textContent = 'Было / стало';
+}
+
+function initAiResult() {
+  $('#ai-cancel').addEventListener('click', () => aiAbort?.abort());
+  $('#ai-close').addEventListener('click', hideAI);
+  $('#btn-compare').addEventListener('click', () => { if (!$('#ai-result').hidden) hideAI(); }); // «До / после» — про ручную подгонку
+  $('#ai-before').addEventListener('click', (e) => {
+    const inner = $('#stage-inner');
+    const before = !inner.classList.contains('is-ai-before');
+    inner.classList.toggle('is-ai-before', before);
+    e.currentTarget.setAttribute('aria-pressed', String(before));
+    e.currentTarget.textContent = before ? 'Показать шторы' : 'Было / стало';
+    tryon.showAfter = !before; tryon.dirty = true; renderTryon();   // «было» — чистое фото без штор
+  });
+  // сменили тип, ткань или ползунок — старая картинка нейросети уже не про это, убираем
+  // (пока нейросеть работает, не трогаем: человек может присматривать следующую ткань)
+  const changed = () => { if (!aiAbort && !$('#ai-result').hidden) hideAI(); };
+  $('#type-pills').addEventListener('click', (e) => { if (e.target.closest('[data-type]')) changed(); });
+  $('#swatches').addEventListener('click', (e) => { if (e.target.closest('[data-fabric]')) changed(); });
+  $$('.range input').forEach((r) => r.addEventListener('input', changed));
 }
 
 /**
@@ -1042,6 +1333,30 @@ async function detectWindowAI(photo) {
 }
 
 /* ---------- 8. Экран 4 — бизнес ---------- */
+// Окно с фото и описанием: общий шаблон для «Сложных окон» и кейсов «Для бизнеса»
+function openShowcase(item, { label, cta, msg, stub }) {
+  const ph = (t, i) => `<div class="ph ${i === 2 ? 'ph--peach' : ''} show__ph show__ph--${i}" data-label="${t}"></div>`;
+  $('#biz-body').innerHTML = `
+    <span class="biz__tag">${item.tag}</span>
+    <h2 class="biz__title" id="biz-title">${item.title}</h2>
+    ${stub ? '<p class="todo">кейс-заглушка — заменить на реальный объект и фото</p>' : ''}
+    <div class="show">
+      <div class="show__gallery">${item.photos.map(ph).join('')}</div>
+      <div class="show__text">
+        <p class="biz__desc">${item.desc}</p>
+        <h3 class="biz__h">${label}</h3>
+        <ul class="ticks">${item.did.map((t) => `<li>${icon('i-check')}<span>${t}</span></li>`).join('')}</ul>
+        <button class="btn btn--pearl btn--lg" type="button" id="biz-cta">${cta}${icon('i-arrow')}</button>
+      </div>
+    </div>`;
+  $('#biz-cta').addEventListener('click', () => {
+    closeModal($('#biz-modal'));
+    openContact(msg, cta, 'Сообщение уже готово — выберите мессенджер');
+  });
+  openModal($('#biz-modal'));
+}
+
+/* ---------- 8. Экран 4 — сложные окна и бизнес ---------- */
 function initBusiness() {
   const pills = $('#biz-pills');
   pills.innerHTML = Object.entries(BUSINESS).map(([k, b]) => `<button type="button" data-biz="${k}" aria-haspopup="dialog">${b.tag}</button>`).join('');
@@ -1049,29 +1364,22 @@ function initBusiness() {
     const btn = e.target.closest('[data-biz]');
     if (!btn) return;
     const b = BUSINESS[btn.dataset.biz];
-    $('#biz-body').innerHTML = `
-      <span class="biz__tag">${b.tag}</span>
-      <h2 class="biz__title" id="biz-title">${b.title} — ${b.price}</h2>
-      <p class="biz__meta">Сроки: ${b.term} <span class="todo">· цены уточнить</span></p>
-      <p class="biz__desc">${b.desc}</p>
-      <h3 class="biz__h">Что можно заказать</h3>
-      <div class="biz__items">${b.items.map((it) => `<div class="biz__item"><b>${it.name}</b><p class="price">${it.price}</p><p>${it.text}</p></div>`).join('')}</div>
-      <div class="biz__cols">
-        <div><h3 class="biz__h">Что входит</h3><ul class="ticks">${b.includes.map((t) => `<li>${icon('i-check')}<span>${t}</span></li>`).join('')}</ul></div>
-        <div><h3 class="biz__h">Примеры задач</h3><ul class="cases-mini">${b.examples.map((t) => `<li>${t}</li>`).join('')}</ul></div>
-      </div>
-      <button class="btn btn--pearl btn--lg" type="button" id="biz-cta" style="margin-top:20px">Обсудить проект${icon('i-arrow')}</button>`;
-    $('#biz-cta').addEventListener('click', () => {
-      closeModal($('#biz-modal'));
-      openContact(`Здравствуйте! Интересует оформление текстилем: ${b.tag.toLowerCase()}. Хочу обсудить проект.`, 'Обсудить проект', 'Сообщение уже готово — выберите мессенджер');
-    });
-    openModal($('#biz-modal'));
+    openShowcase(b, { label: 'Что сделали', cta: 'Обсудить проект', stub: true,
+      msg: `Здравствуйте! Интересует оформление текстилем: ${b.tag.toLowerCase()}. Хочу обсудить проект.` });
+  });
+  $('#win-chips')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-win]');
+    if (!btn) return;
+    const w = WINDOWS[btn.dataset.win];
+    openShowcase(w, { label: 'Как решаем', cta: 'Спросить про моё окно',
+      msg: `Здравствуйте! У меня ${btn.textContent.trim()} окна — подскажите, какие шторы подойдут?` });
   });
 }
 
 /* ---------- 9. Экран 5 — кейсы до/после ---------- */
 function initCases() {
   const track = $('#cases-track');
+  if (!track) return; // блок «до / после» убран (24.11), на его месте — «Наш салон»
   track.innerHTML = CASES.map((c, i) => `
     <div class="case" role="group" aria-roledescription="слайд" aria-label="${i + 1} из ${CASES.length}">
       <div class="case__card glass">
@@ -1140,6 +1448,11 @@ function renderReviews(platform) {
   $('#reviews-panel').dataset.platform = platform;
   $('#platform-tabs').dataset.platform = platform;
   $('#all-reviews').href = CONFIG.maps[platform];
+  // рейтинг площадки (ноябрь 2026): 2ГИС — 4,9, Яндекс Карты — 4,8
+  const rate = { gis: ['4,9', 'средняя оценка в 2ГИС'], yandex: ['4,8', 'средняя оценка в Яндекс Картах'] }[platform];
+  const num = $('.score__num'), cap = $('.score__cap');
+  if (num) { num.textContent = rate[0]; num.setAttribute('aria-label', `Средняя оценка ${rate[0]} из 5`); }
+  if (cap) cap.textContent = rate[1];
   $('#review-list').innerHTML = REVIEWS[platform].map((r, i) => `
     <article class="review" style="animation-delay:${i * 70}ms">
       <div class="review__head"><span class="review__name">${esc(r.name)}</span>${stars(r.stars)}</div>
@@ -1148,12 +1461,13 @@ function renderReviews(platform) {
     </article>`).join('');
 }
 function initReviews() {
-  renderReviews('yandex');
+  renderReviews('gis');
   initSeg($('#platform-tabs'), (b) => renderReviews(b.dataset.platform));
-  $('#messages').innerHTML = PERSONAL.map((m) => `
+  const msgBox = $('#messages'); if (!msgBox) return;
+  msgBox.innerHTML = PERSONAL.map((m) => `
     <article class="message glass reveal">
       <p>${esc(m.text)}</p>
-      <div class="message__meta"><span>${esc(m.from)} · ${esc(m.via)} ${sampleMark()}</span><span>${esc(m.time)}</span></div>
+      <div class="message__meta"><span>${esc(m.from)} · ${esc(m.via)} ${CONFIG.showMessageSampleMarks ? '<span class="sample-mark">образец</span>' : ''}</span><span>${esc(m.time)}</span></div>
     </article>`).join('');
 }
 
@@ -1337,6 +1651,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeader();
   initModals();
   initHits();
+  initTextile();
+  initStrongMagnet();
   initTryon();
   initBusiness();
   initCases();
@@ -1348,3 +1664,12 @@ document.addEventListener('DOMContentLoaded', () => {
   initReveal();               // после рендера карточек — чтобы новые .reveal тоже появились
   initCurtains(initToast);
 });
+
+
+// UDS: ставим ссылку из CONFIG.uds; пока ссылки нет — карточка ведёт к контактам в той же вкладке
+(() => {
+  const a = document.getElementById('uds-link');
+  if (!a) return;
+  if (CONFIG.uds) { a.href = CONFIG.uds; }
+  else { a.href = '#contacts'; a.removeAttribute('target'); a.removeAttribute('rel'); }
+})();

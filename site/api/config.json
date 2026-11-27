@@ -1,0 +1,38 @@
+{
+  "_readme": "Настройки ИИ-примерки. Читаются при каждом запросе — после правки сервер перезапускать не нужно. Ключ здесь НЕ хранится: он лежит в папке secret рядом с папкой site.",
+
+  "model": "google/gemini-3.1-flash-lite-image",
+  "_models_spare": [
+    "google/gemini-nano-banana-2.1",
+    "google/gemini-3.1-flash-image-preview",
+    "google/gemini-2.5-flash-image"
+  ],
+
+  "endpoint": "https://polza.ai/api/v1/media",
+  "timeoutSec": 120,
+
+  "limits": {
+    "_readme": "Защита от накрутки: сколько примерок можно с одного IP за час и всего за сутки. Вы сами (localhost) ограничены только суточным лимитом.",
+    "perIpPerHour": 12,
+    "perDay": 150
+  },
+
+  "prompts": {
+    "portieres": "Hang floor-length curtains made of the fabric from the second image on the window in the first image.",
+    "tulle": "Hang a light floor-length sheer tulle curtain made of the fabric from the second image on the window in the first image. It must be slightly translucent so the window is softly visible through it.",
+    "combo": "Hang floor-length side curtains made of the fabric from the second image on the window in the first image, together with a sheer white tulle behind them across the whole window.",
+    "roman": "Install a Roman shade made of the fabric from the second image on the window in the first image. The shade covers about {cover}% of the window height from the top and has neat soft horizontal folds.",
+    "roller": "Install a roller blind made of the fabric from the second image on the window in the first image. The blind covers about {cover}% of the window height from the top."
+  },
+
+  "fabric": "The fabric is {kind}, colour {color}.",
+  "kinds": {
+    "linen": "natural linen",
+    "velvet": "soft velvet with a subtle sheen",
+    "blackout": "dense opaque blackout fabric",
+    "jacquard": "jacquard with a subtle woven pattern",
+    "sheer": "sheer white tulle"
+  },
+
+  "common": "Realistic folds and soft shadows. Hang them on the existing curtain rod or track if there is one, and do not add any new details: no new rods, hooks, pinch pleats, tiebacks or decorations. Keep the room, walls, furniture, camera angle, the view outside the window and the time of day exactly the same as in the first image."
+}

@@ -1,0 +1,4 @@
+# Настройки и журнал ИИ-примерки наружу не отдаём (Apache на хостинге)
+<FilesMatch "\.(json|log|txt)$">
+  Require all denied
+</FilesMatch>
