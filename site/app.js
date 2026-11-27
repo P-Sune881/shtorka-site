@@ -52,12 +52,12 @@ const CONFIG = {
 const TEXTILE = [
   { name: 'Постельное бельё',  photo: 'Фото: комплект постельного белья на кровати', img: 'assets/textile/bedding.webp' },
   { name: 'Одеяла',            photo: 'Фото: сложенные одеяла', img: 'assets/textile/blankets.webp' },
-  { name: 'Подушки',           photo: 'Фото: подушки разных размеров' },
-  { name: 'Пледы',             photo: 'Фото: плед на кресле' },
-  { name: 'Покрывала',         photo: 'Фото: покрывало на заправленной кровати' },
-  { name: 'Полотенца',         photo: 'Фото: стопка махровых полотенец' },
-  { name: 'Детский текстиль',  photo: 'Фото: детский комплект в кроватке' },
-  { name: 'Наматрасники',      photo: 'Фото: наматрасник на матрасе' }, // уточнить у клиента, есть ли в ассортименте
+  { name: 'Подушки',           photo: 'Фото: подушки разных размеров', img: 'assets/textile/pillows.webp' },
+  { name: 'Пледы',             photo: 'Фото: плед на кресле', img: 'assets/textile/plaids.webp' },
+  { name: 'Покрывала',         photo: 'Фото: покрывало на заправленной кровати', img: 'assets/textile/bedspreads.webp' },
+  { name: 'Полотенца',         photo: 'Фото: стопка махровых полотенец', img: 'assets/textile/towels.webp' },
+  { name: 'Детский текстиль',  photo: 'Фото: детский комплект в кроватке', img: 'assets/textile/kids.webp' },
+  { name: 'Наматрасники',      photo: 'Фото: наматрасник на матрасе', img: 'assets/textile/mattress.webp' }, // уточнить у клиента, есть ли в ассортименте
 ];
 
 const PRODUCTS = [
